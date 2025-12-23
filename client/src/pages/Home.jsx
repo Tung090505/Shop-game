@@ -152,7 +152,7 @@ const Home = () => {
             </section>
 
             {/* Premium Trust & Security Bar */}
-            <section className="py-20 relative overflow-hidden bg-primary">
+            <section className="py-2 relative overflow-hidden bg-primary">
                 <div className="absolute inset-0 bg-accent/5 blur-[100px] pointer-events-none"></div>
                 <div className="container mx-auto px-4 relative z-10">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
