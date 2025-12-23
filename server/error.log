@@ -1,0 +1,79 @@
+﻿[dotenv@17.2.3] injecting env (3) from .env -- tip: ΓÜÖ∩╕Å  specify custom .env file path with { path: '/custom/path/.env' }
+node : node:internal/m
+odules/cjs/loader:1386
+At line:1 char:1
++ node index.js *>&1 
+| Out-File -FilePath 
+error.log -Encoding 
+utf8; Get ...
++ ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (node:inter   
+ nal/modules/cjs/l    
+oader:1386:String    
+) [], RemoteExcep    
+tion
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+  throw err;
+  ^
+
+Error: Cannot find 
+module 'jsonwebtoken'
+Require stack:
+- C:\File D\shop game\
+server\routes\auth.js
+- C:\File D\shop 
+game\server\index.js
+    at Function._resol
+veFilename (node:inter
+nal/modules/cjs/loader
+:1383:15)
+    at 
+defaultResolveImpl (no
+de:internal/modules/cj
+s/loader:1025:19)
+    at resolveForCJSWi
+thHooks (node:internal
+/modules/cjs/loader:10
+30:22)
+    at Function._load 
+(node:internal/modules
+/cjs/loader:1192:37)
+    at TracingChannel.
+traceSync (node:diagno
+stics_channel:322:14)
+    at wrapModuleLoad 
+(node:internal/modules
+/cjs/loader:237:24)
+    at Module.require 
+(node:internal/modules
+/cjs/loader:1463:12)
+    at require (node:i
+nternal/modules/helper
+s:147:16)
+    at 
+Object.<anonymous> 
+(C:\File D\shop game\s
+erver\routes\auth.js:3
+:13)
+    at 
+Module._compile (node:
+internal/modules/cjs/l
+oader:1706:14) {
+  code: 
+'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\File D\\shop 
+game\\server\\routes\\
+auth.js',
+    'C:\\File D\\shop 
+game\\server\\index.js
+'
+  ]
+}
+
+Node.js v22.19.0

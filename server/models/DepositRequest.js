@@ -1,0 +1,19 @@
+const mongoose = require('mongoose');
+
+const DepositRequestSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    amount: { type: Number, required: true },
+    method: { type: String, enum: ['bank', 'momo', 'card'], required: true },
+    transactionId: { type: String, required: true, unique: true },
+    cardDetails: {
+        type: { type: String },
+        serial: { type: String },
+        pin: { type: String },
+        declaredAmount: { type: Number }
+    },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+module.exports = mongoose.model('DepositRequest', DepositRequestSchema);
