@@ -2,81 +2,99 @@ const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 const DepositRequest = require('../models/DepositRequest');
 
-// Đây là Controller xử lý tín hiệu từ các bên như SePay, Casso hoặc PayOS
+// Đây là Controller xử lý tín hiệu từ SEPAY.VN
 exports.handleBankWebhook = async (req, res) => {
     try {
-        // Log dữ liệu nhận được để dễ dàng debug
-        console.log('--- BANK WEBHOOK RECEIVED ---');
+        console.log('--- SEPAY WEBHOOK RECEIVED ---');
         console.log(JSON.stringify(req.body, null, 2));
 
-        // Tùy theo bên bạn dùng, cấu trúc req.body sẽ khác nhau. 
-        // Ở đây mình làm ví dụ theo cấu trúc phổ biến của SePay/Casso:
-        // { content: "SHOPNICK ADMIN", amount: 50000, reference: "TH8273" }
+        // SePay gửi các trường: content, transferAmount, referenceCode, accountNumber...
+        const { content, transferAmount, referenceCode, code, description } = req.body;
 
-        const { content, amount, reference, code } = req.body;
-        const transactionCode = reference || code; // Mã giao dịch từ ngân hàng
+        // Lấy dữ liệu quan trọng
+        const transferContent = content || description || "";
+        const amount = Number(transferAmount || req.body.amount || 0);
+        const bankTranId = referenceCode || code || `BANK_${Date.now()}`;
 
-        if (!content || !amount) {
-            return res.status(400).send('Invalid data');
+        if (!transferContent || amount <= 0) {
+            console.log('Dữ liệu không hợp lệ:', { transferContent, amount });
+            return res.status(200).send('Log: Missing content or amount');
         }
 
-        // 1. Phân tích nội dung chuyển khoản để lấy Username
-        // Định dạng mình đã cài ở FE là: "SHOPNICK USERNAME"
-        const regex = /SHOPNICK\s+(\w+)/i;
-        const match = content.match(regex);
+        // 1. Phân tích nội dung để lấy mã nạp (NAP123456)
+        const regexNAP = /NAP(\d+)/i;
+        const matchNAP = transferContent.match(regexNAP);
 
-        if (!match) {
-            console.log('Nội dung không hợp lệ hoặc không phải của shop:', content);
-            return res.status(200).send('Log: Content not related to Shop');
+        // Hỗ trợ thêm SHOPNICK username
+        const regexUser = /SHOPNICK\s+(\w+)/i;
+        const matchUser = transferContent.match(regexUser);
+
+        let deposit = null;
+        let user = null;
+
+        if (matchNAP) {
+            const transactionId = matchNAP[0].toUpperCase();
+            deposit = await DepositRequest.findOne({
+                transactionId: transactionId,
+                status: 'pending'
+            }).populate('user');
+
+            if (deposit) {
+                user = deposit.user;
+            }
         }
 
-        const username = match[1].toLowerCase();
-        const user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+        if (!deposit && matchUser) {
+            const username = matchUser[1].toLowerCase();
+            user = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+        }
 
         if (!user) {
-            console.log('Không tìm thấy người dùng cho username:', username);
+            console.log('Không tìm thấy User/Yêu cầu phù hợp cho nội dung:', transferContent);
             return res.status(200).send('Log: User not found');
         }
 
-        // 2. Kiểm tra xem mã giao dịch này đã được cộng tiền chưa (trùng lặp)
-        const existingDeposit = await DepositRequest.findOne({ transactionId: transactionCode });
-        if (existingDeposit && existingDeposit.status === 'approved') {
-            return res.status(200).send('Log: Transaction already processed');
+        // 2. Kiểm tra trùng mã giao dịch ngân hàng
+        const existingTrans = await DepositRequest.findOne({ bankTransactionId: bankTranId });
+        if (existingTrans && existingTrans.status === 'approved') {
+            return res.status(200).send('Log: Already processed');
         }
 
-        // 3. Thực hiện cộng tiền và tạo lịch sử
-        user.balance += Number(amount);
+        // 3. Cộng tiền
+        user.balance += amount;
         await user.save();
 
-        // Tạo hoặc cập nhật yêu cầu nạp tiền
-        if (existingDeposit) {
-            existingDeposit.status = 'approved';
-            existingDeposit.updatedAt = Date.now();
-            await existingDeposit.save();
+        // 4. Cập nhật DepositRequest
+        if (deposit) {
+            deposit.status = 'approved';
+            deposit.bankTransactionId = bankTranId;
+            deposit.updatedAt = Date.now();
+            await deposit.save();
         } else {
             await new DepositRequest({
                 user: user._id,
-                amount: Number(amount),
+                amount: amount,
                 method: 'bank',
-                transactionId: transactionCode,
+                transactionId: `AUTO_${Date.now()}`,
+                bankTransactionId: bankTranId,
                 status: 'approved'
             }).save();
         }
 
-        // Ghi log Transaction chính thức
+        // 5. Ghi Transaction Log
         await new Transaction({
             userId: user._id,
             type: 'deposit',
-            amount: Number(amount),
-            description: `Nạp tiền tự động qua Ngân hàng (Nội dung: ${content})`
+            amount: amount,
+            description: `Nạp tiền tự động SePay (Nội dung: ${transferContent})`
         }).save();
 
-        console.log(`[SUCCESS] Đã cộng ${amount}đ cho user ${user.username}`);
+        console.log(`[OK] Đã nạp ${amount}đ vào tài khoản ${user.username}`);
         res.status(200).send('OK');
 
     } catch (err) {
-        console.error('WEBHOOK ERROR:', err);
-        res.status(500).send('Internal Server Error');
+        console.error('SEPAY WEBHOOK ERROR:', err);
+        res.status(200).send('Error but OK');
     }
 };
 

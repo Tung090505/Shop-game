@@ -12,6 +12,7 @@ const DepositRequestSchema = new mongoose.Schema({
         declaredAmount: { type: Number }
     },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    bankTransactionId: { type: String }, // Lưu mã giao dịch từ phía Ngân hàng (SePay/Casso/PayOS)
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });
