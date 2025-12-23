@@ -14,9 +14,14 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+    crossOriginResourcePolicy: false, // Cho phép tải ảnh từ server khác
+    contentSecurityPolicy: false      // Không chặn các script lạ
 }));
-app.use(cors());
+app.use(cors({
+    origin: '*', // Chấp nhận tất cả nguồn (điện thoại, web khác...)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Create uploads folder if it doesn't exist
