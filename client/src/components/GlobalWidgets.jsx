@@ -63,7 +63,7 @@ const GlobalWidgets = () => {
             <div className="fixed bottom-8 right-8 z-[100] flex flex-col gap-4">
                 {/* Zalo Button */}
                 <a
-                    href="https://zalo.me/0335028503" // Bạn có thể đổi số Zalo ở đây
+                    href="https://zalo.me/0869024105"
                     target="_blank"
                     rel="noreferrer"
                     className="group relative flex items-center justify-center w-14 h-14 bg-[#0068FF] rounded-2xl shadow-[0_0_20px_rgba(0,104,255,0.4)] hover:scale-110 transition-all duration-300 animate-bounce-slow"
@@ -74,6 +74,21 @@ const GlobalWidgets = () => {
                     {/* Tooltip */}
                     <div className="absolute right-full mr-4 px-4 py-2 bg-white text-black text-[10px] font-black uppercase rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap shadow-xl">
                         Hỗ trợ Zalo 24/7
+                    </div>
+                </a>
+
+                {/* Facebook Button */}
+                <a
+                    href="https://www.facebook.com/Ryon05"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group relative flex items-center justify-center w-14 h-14 bg-[#1877F2] rounded-2xl shadow-[0_0_20px_rgba(24,119,242,0.4)] hover:scale-110 transition-all duration-300"
+                >
+                    <span className="text-white font-black text-xl italic leading-none">f</span>
+
+                    {/* Tooltip */}
+                    <div className="absolute right-full mr-4 px-4 py-2 bg-white text-black text-[10px] font-black uppercase rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap shadow-xl">
+                        Chat Facebook
                     </div>
                 </a>
 
