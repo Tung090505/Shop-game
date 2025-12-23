@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import * as api from '../api';
 
 const FlashSale = () => {
     const [products, setProducts] = useState([]);
@@ -9,7 +9,7 @@ const FlashSale = () => {
     useEffect(() => {
         const fetchFlashSales = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/products?flashSale=true');
+                const res = await api.fetchProducts({ flashSale: true });
                 setProducts(res.data);
             } catch (err) {
                 console.error(err);

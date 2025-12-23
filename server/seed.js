@@ -70,10 +70,11 @@ const seedDB = async () => {
         const hashedPassword = await bcrypt.hash('admin123', 10);
         const admin = new User({
             username: 'admin',
-            email: 'admin@shop.com',
+            email: 'admin@gmail.com',
             password: hashedPassword,
             role: 'admin',
-            balance: 999999
+            balance: 1000000,
+            isVerified: true // Tự động xác minh admin
         });
         await admin.save();
         console.log("Admin User Seeded! (admin/admin123)");

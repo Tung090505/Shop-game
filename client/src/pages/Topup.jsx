@@ -1,10 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import * as api from '../api';
 import { useNavigate } from 'react-router-dom';
 
 const Topup = () => {
-    const [amount, setAmount] = useState(10);
+    const [amount, setAmount] = useState(10000);
     const { user, setUser } = useContext(AuthContext);
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
@@ -12,11 +12,7 @@ const Topup = () => {
     const handleTopup = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/api/user/topup',
-                { amount },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const res = await api.topupBalance(amount);
             setUser(res.data); // Update user with new balance
             alert('Topup Successful!');
             navigate('/profile');

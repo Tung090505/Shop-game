@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import * as api from '../api';
 import ProductCard from '../components/ProductCard';
 import FilterSidebar from '../components/FilterSidebar';
 
@@ -21,12 +21,10 @@ const Shop = () => {
         setFilters(prev => ({ ...prev, category: categoryParam }));
     }, [categoryParam]);
 
-    const fetchProducts = async () => {
+    const fetchProductsData = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/products', {
-                params: filters
-            });
+            const res = await api.fetchProducts(filters);
             setProducts(res.data);
         } catch (err) {
             console.error(err);
@@ -36,7 +34,7 @@ const Shop = () => {
     };
 
     useEffect(() => {
-        fetchProducts();
+        fetchProductsData();
     }, [filters]);
 
     const filteredProducts = products.filter(p =>

@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
+import * as api from '../api';
 import toast from 'react-hot-toast';
 
 const Affiliate = () => {
@@ -22,14 +22,11 @@ const Affiliate = () => {
 
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/user/withdraw-commission', {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.withdrawCommission();
             toast.success('Đã chuyển hoa hồng vào số dư chính!');
             fetchProfile();
         } catch (err) {
-            toast.error(err.response?.data || 'Rút tiền thất bại');
+            toast.error(err.response?.data?.message || 'Rút tiền thất bại');
         } finally {
             setLoading(false);
         }

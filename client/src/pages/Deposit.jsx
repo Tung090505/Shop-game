@@ -1,12 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import * as api from '../api';
 import { AuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const Deposit = () => {
     const { user } = useContext(AuthContext);
     const [amount, setAmount] = useState('');
-    const [method, setMethod] = useState('bank');
+    const [method, setMethod] = useState('card');
     const [depositCode, setDepositCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [qrUrl, setQrUrl] = useState('');
@@ -19,22 +19,20 @@ const Deposit = () => {
     const [pin, setPin] = useState('');
 
     const CARD_PROVIDERS = [
-        { id: 'VIETTEL', name: 'Viettel', color: 'bg-red-600' },
-        { id: 'MOBIFONE', name: 'Mobifone', color: 'bg-blue-600' },
-        { id: 'VINAPHONE', name: 'Vinaphone', color: 'bg-blue-400' },
-        { id: 'ZING', name: 'Zing', color: 'bg-orange-500' },
+        { id: 'VIETTEL', name: 'Viettel' },
+        { id: 'MOBIFONE', name: 'Mobifone' },
+        { id: 'VINAPHONE', name: 'Vinaphone' },
+        { id: 'ZING', name: 'Zing' },
     ];
 
     const CARD_AMOUNTS = ['10000', '20000', '30000', '50000', '100000', '200000', '300000', '500000', '1000000'];
 
-    // Cấu hình ngân hàng chuẩn (Sử dụng mã BIN 970422 cho MB Bank)
     const BANK_CONFIG = {
         bankId: '970422',
         accountNo: '0869024105',
         accountName: 'PHAM THANH TUNG',
     };
 
-    // Tạo mã nạp ngẫu nhiên khi vào trang
     useEffect(() => {
         const randomStr = Math.floor(100000 + Math.random() * 900000);
         setDepositCode(`NAP${randomStr}`);
@@ -45,7 +43,6 @@ const Deposit = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Xử lý nạp Bank/Momo
         if (method !== 'card') {
             if (!amount) {
                 toast.error('Vui lòng nhập số tiền muốn nạp');
@@ -59,29 +56,25 @@ const Deposit = () => {
 
             setLoading(true);
             try {
-                const token = localStorage.getItem('token');
-                await axios.post('http://localhost:5000/api/deposits/submit', {
+                await api.submitDeposit({
                     amount: Number(amount),
                     method,
                     transactionId: depositCode
-                }, {
-                    headers: { Authorization: `Bearer ${token}` }
                 });
 
-                // Sử dụng API VietQR trực tiếp - Tốc độ cao và ổn định hơn
                 const url = `https://api.vietqr.io/${BANK_CONFIG.bankId}/${BANK_CONFIG.accountNo}/${amount}/${depositCode}/vietqr_net_2.jpg?accountName=${encodeURIComponent(BANK_CONFIG.accountName)}&t=${Date.now()}`;
                 setQrUrl(url);
                 setIsSubmitted(true);
                 toast.success('Đã tạo yêu cầu! Vui lòng quét mã QR để chuyển khoản.');
 
             } catch (err) {
-                toast.error(err.response?.data?.message || 'Gửi yêu cầu thất bại');
+                console.error('Deposit Error:', err);
+                const msg = err.response?.data?.message || err.message || 'Gửi yêu cầu thất bại';
+                toast.error(msg);
             } finally {
                 setLoading(false);
             }
-        }
-        // Xử lý nạp Thẻ cào
-        else {
+        } else {
             if (!serial || !pin) {
                 toast.error('Vui lòng nhập đầy đủ serial và mã thẻ');
                 return;
@@ -89,8 +82,7 @@ const Deposit = () => {
 
             setLoading(true);
             try {
-                const token = localStorage.getItem('token');
-                const res = await axios.post('http://localhost:5000/api/deposits/submit', {
+                await api.submitDeposit({
                     amount: Number(declaredAmount),
                     method: 'card',
                     transactionId: `CARD_${Date.now()}`,
@@ -100,8 +92,6 @@ const Deposit = () => {
                         pin,
                         declaredAmount: Number(declaredAmount)
                     }
-                }, {
-                    headers: { Authorization: `Bearer ${token}` }
                 });
 
                 toast.success('Gửi thẻ thành công! Vui lòng chờ hệ thống kiểm tra (1-3 phút)');
@@ -123,196 +113,173 @@ const Deposit = () => {
     };
 
     return (
-        <div className="min-h-screen bg-primary py-20 pb-32">
-            <div className="container mx-auto px-4 max-w-6xl">
-                <div className="flex flex-col items-center mb-16 text-center">
-                    <h1 className="text-6xl font-black text-white uppercase italic tracking-tighter mb-4">
-                        NẠP TIỀN <span className="text-accent">DỊCH VỤ</span>
-                    </h1>
-                    <div className="h-1 w-24 bg-accent rounded-full mb-6"></div>
-                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">An toàn • Bảo mật • Tự động</p>
+        <div className="min-h-screen bg-[#070b14] py-12">
+            <div className="container mx-auto px-4 max-w-7xl">
+                {/* Method Tabs */}
+                <div className="flex justify-center mb-10">
+                    <div className="bg-[#121927] p-2 rounded-3xl flex gap-2 shadow-[0px_4px_24px_rgba(0,0,0,0.5)] border border-[#1e293b]">
+                        <button
+                            onClick={() => !isSubmitted && setMethod('bank')}
+                            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'bank' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            <span className="text-xl">🏛️</span> NGÂN HÀNG
+                        </button>
+                        <button
+                            onClick={() => !isSubmitted && setMethod('momo')}
+                            className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'momo' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            <span className="text-xl">🌸</span> MOMO
+                        </button>
+                        <button
+                            onClick={() => !isSubmitted && setMethod('card')}
+                            className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
+                        >
+                            <span className="text-xl">💳</span> THẺ CÀO
+                        </button>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-                    {/* Left Side: Select & Info */}
-                    <div className="lg:col-span-7 space-y-8">
-                        {/* Selector */}
-                        <div className="bg-secondary/40 backdrop-blur-xl p-3 rounded-[2rem] border border-white/5 flex flex-wrap gap-2">
-                            <button
-                                onClick={() => !isSubmitted && setMethod('bank')}
-                                className={`flex-1 min-w-[140px] py-5 rounded-[1.5rem] font-black uppercase italic tracking-widest text-sm transition-all duration-500 flex items-center justify-center gap-3 ${method === 'bank' ? 'bg-accent text-white shadow-2xl shadow-accent/20' : 'text-slate-500 hover:text-slate-300'} ${isSubmitted ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                <span className="text-xl">🏦</span> Ngân Hàng
-                            </button>
-                            <button
-                                onClick={() => !isSubmitted && setMethod('momo')}
-                                className={`flex-1 min-w-[140px] py-5 rounded-[1.5rem] font-black uppercase italic tracking-widest text-sm transition-all duration-500 flex items-center justify-center gap-3 ${method === 'momo' ? 'bg-[#a50064] text-white shadow-2xl shadow-pink-500/20' : 'text-slate-500 hover:text-slate-300'} ${isSubmitted ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                <span className="text-xl">🧠</span> MoMo
-                            </button>
-                            <button
-                                onClick={() => !isSubmitted && setMethod('card')}
-                                className={`flex-1 min-w-[140px] py-5 rounded-[1.5rem] font-black uppercase italic tracking-widest text-sm transition-all duration-500 flex items-center justify-center gap-3 ${method === 'card' ? 'bg-orange-600 text-white shadow-2xl shadow-orange-500/20' : 'text-slate-500 hover:text-slate-300'} ${isSubmitted ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                <span className="text-xl">💳</span> Thẻ Cào
-                            </button>
-                        </div>
-
-                        {/* Input Area */}
-                        {!localStorage.getItem('token') ? (
-                            <div className="bg-secondary/40 backdrop-blur-xl p-16 rounded-[3rem] border border-white/5 shadow-2xl text-center">
-                                <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center text-3xl mx-auto mb-6">🔒</div>
-                                <h2 className="text-2xl font-black text-white uppercase mb-4 italic">Yêu cầu đăng nhập</h2>
-                                <p className="text-slate-500 font-bold mb-8 uppercase tracking-widest text-xs">Bạn cần đăng nhập để thực hiện nạp tiền vào tài khoản</p>
-                                <a href="/login" className="inline-block bg-accent hover:bg-accent-hover text-white font-black px-10 py-4 rounded-2xl transition shadow-xl shadow-accent/20 uppercase italic tracking-widest">Đăng nhập ngay</a>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* Main Content Area */}
+                    <div className="lg:col-span-8">
+                        <div className="bg-[#121927] rounded-[2rem] p-8 shadow-2xl border border-[#1e293b]">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="w-1.5 h-8 bg-[#6366f1] rounded-full shadow-[0px_0px_10px_#6366f1]"></div>
+                                <h1 className="text-2xl font-black text-white uppercase italic tracking-wider">
+                                    {method === 'card' ? 'THÔNG TIN NẠP THẺ CÀO' : 'THÔNG TIN NẠP TIỀN'}
+                                </h1>
                             </div>
-                        ) : (
-                            <div className="bg-secondary/40 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white/5 shadow-2xl">
-                                <div className="flex justify-between items-center mb-8">
-                                    <h2 className="text-xl font-black text-white uppercase italic flex items-center leading-none">
-                                        <span className="w-2 h-6 bg-accent mr-4 rounded-full"></span>
-                                        {method === 'card' ? 'Thông tin nạp thẻ cào' : 'Thông tin nạp tiền'}
-                                    </h2>
-                                    {(isSubmitted && method !== 'card') && (
-                                        <button
-                                            onClick={handleReset}
-                                            className="text-[10px] text-accent font-black uppercase tracking-tighter hover:underline"
-                                        >
-                                            Làm mới / Nạp tiếp
-                                        </button>
-                                    )}
-                                </div>
 
-                                <form onSubmit={handleSubmit} className="space-y-6">
+                            {!localStorage.getItem('token') ? (
+                                <div className="py-20 text-center">
+                                    <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-6">🔒</div>
+                                    <h2 className="text-xl font-bold text-white mb-4">Bạn chưa đăng nhập</h2>
+                                    <p className="text-slate-500 mb-8 max-w-xs mx-auto">Vui lòng đăng nhập để thực hiện nạp tiền và nhận các ưu đãi hấp dẫn.</p>
+                                    <a href="/login" className="px-10 py-4 bg-[#ff4d15] text-white rounded-2xl font-bold uppercase italic transition duration-300 shadow-xl shadow-[#ff4d154d] hover:-translate-y-1">Đăng nhập ngay</a>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="space-y-8">
                                     {method === 'card' ? (
-                                        <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
-                                            {/* Chọn nhà mạng */}
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Loại thẻ</label>
+                                        <div className="space-y-8">
+                                            {/* Card Provider */}
+                                            <div className="space-y-4">
+                                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[2px] block ml-1">LOẠI THẺ</label>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                                     {CARD_PROVIDERS.map((provider) => (
                                                         <button
                                                             key={provider.id}
                                                             type="button"
                                                             onClick={() => setCardType(provider.id)}
-                                                            className={`py-3 rounded-2xl font-black text-xs transition-all border ${cardType === provider.id ? 'bg-white/10 text-white border-accent' : 'bg-white/5 text-slate-500 border-white/5 hover:bg-white/10 hover:text-slate-300'}`}
+                                                            className={`py-4 rounded-2xl font-black text-xs transition-all border-2 relative overflow-hidden group ${cardType === provider.id ? 'bg-[#1e293b] border-[#6366f1] text-white shadow-[0px_0px_15px_#6366f14d]' : 'bg-[#1a2333]/50 border-transparent text-slate-500 hover:border-slate-700 hover:text-slate-300'}`}
                                                         >
                                                             {provider.name}
+                                                            {cardType === provider.id && <div className="absolute top-0 right-0 w-8 h-8 bg-[#6366f1] shadow-[0px_0px_10px_#6366f1] translate-x-4 -translate-y-4 rotate-45"></div>}
                                                         </button>
                                                     ))}
                                                 </div>
                                             </div>
 
-                                            {/* Chọn mệnh giá */}
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mệnh giá</label>
+                                            {/* Card Amount */}
+                                            <div className="space-y-4">
+                                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[2px] block ml-1">MỆNH GIÁ</label>
                                                 <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                                                     {CARD_AMOUNTS.map((amt) => (
                                                         <button
                                                             key={amt}
                                                             type="button"
                                                             onClick={() => setDeclaredAmount(amt)}
-                                                            className={`py-3 rounded-xl font-black text-[10px] transition-all border ${declaredAmount === amt ? 'bg-accent/20 text-accent border-accent/40' : 'bg-white/5 text-slate-500 border-white/5 hover:bg-white/10 hover:text-slate-300'}`}
+                                                            className={`py-3.5 rounded-xl font-black text-[11px] transition-all border-2 ${declaredAmount === amt ? 'bg-[#1e293b] border-[#6366f1] text-[#6366f1] shadow-[0px_0px_10px_#6366f133]' : 'bg-[#1a2333]/50 border-transparent text-slate-500 hover:bg-[#1a2333] hover:text-slate-300'}`}
                                                         >
                                                             {Number(amt).toLocaleString('vi-VN')}đ
                                                         </button>
                                                     ))}
                                                 </div>
-                                                <p className="text-[10px] text-yellow-500/70 font-bold italic">* Chú ý: Chọn sai mệnh giá có thể mất thẻ.</p>
+                                                <p className="text-[10px] text-[#fbbf24] font-bold italic ml-1">* Chú ý: Chọn sai mệnh giá có thể mất thẻ.</p>
                                             </div>
 
                                             {/* Serial & Code */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="space-y-2">
-                                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Số Serial</label>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-3">
+                                                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[2px] block ml-1">SỐ SERIAL</label>
                                                     <input
                                                         type="text"
                                                         value={serial}
                                                         onChange={(e) => setSerial(e.target.value)}
                                                         placeholder="Nhập số serial..."
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-black text-sm outline-none focus:border-accent transition-all"
+                                                        className="w-full bg-[#1a2333] border border-white/5 rounded-2xl px-6 py-4.5 text-white font-bold text-sm outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f133] transition-all placeholder:text-slate-700"
                                                         required
                                                     />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mã thẻ (Pin)</label>
+                                                <div className="space-y-3">
+                                                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-[2px] block ml-1">MÃ THẺ (PIN)</label>
                                                     <input
                                                         type="text"
                                                         value={pin}
                                                         onChange={(e) => setPin(e.target.value)}
                                                         placeholder="Nhập mã thẻ..."
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-black text-sm outline-none focus:border-accent transition-all"
+                                                        className="w-full bg-[#1a2333] border border-white/5 rounded-2xl px-6 py-4.5 text-white font-bold text-sm outline-none focus:border-[#6366f1] focus:ring-1 focus:ring-[#6366f133] transition-all placeholder:text-slate-700"
                                                         required
                                                     />
                                                 </div>
                                             </div>
 
-                                            <div className="bg-orange-500/10 border border-orange-500/20 p-4 rounded-2xl">
-                                                <div className="flex items-center gap-3 text-orange-500 mb-2">
-                                                    <span className="text-lg">🔥</span>
-                                                    <span className="text-[11px] font-black uppercase tracking-wider">Ưu đãi nạp thẻ</span>
+                                            {/* Discount Banner */}
+                                            <div className="bg-[#1e1515] border border-[#ff4e1533] p-5 rounded-2xl relative overflow-hidden group">
+                                                <div className="absolute top-0 left-0 w-1 h-full bg-[#ff4e15]"></div>
+                                                <div className="flex items-center gap-3 text-[#ff4e15] mb-2 font-black italic">
+                                                    <span className="text-lg animate-pulse">🔥</span>
+                                                    <span className="text-xs uppercase tracking-widest">ƯU ĐÃI NẠP THẺ</span>
                                                 </div>
-                                                <p className="text-slate-400 text-[10px] leading-relaxed uppercase font-bold tracking-tight">Chiết khấu hệ thống: <b>20%</b>. Bạn sẽ nhận được <b>{(Number(declaredAmount) * 0.8).toLocaleString('vi-VN')}đ</b> vào tài khoản.</p>
+                                                <p className="text-slate-400 text-[11px] uppercase font-bold tracking-tight leading-loose">
+                                                    CHIẾT KHẤU HỆ THỐNG: <span className="text-white">20%</span>. BẠN SẼ NHẬN ĐƯỢC <span className="text-[#ff4e15] italic">{(Number(declaredAmount) * 0.8).toLocaleString('vi-VN')}đ</span> VÀO TÀI KHOẢN.
+                                                </p>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-8">
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Bước 1: Nhập số tiền muốn nạp (đ)</label>
+                                        <div className="space-y-8 animate-in fade-in duration-500">
+                                            <div className="space-y-4">
+                                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-[2px] block ml-1">NHẬP SỐ TIỀN MUỐN NẠP (VNĐ)</label>
                                                 <div className="relative">
                                                     <input
                                                         type="text"
                                                         inputMode="numeric"
                                                         value={amount}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value.replace(/\D/g, '');
-                                                            setAmount(val);
-                                                        }}
-                                                        placeholder="VD: 10000"
+                                                        onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))}
+                                                        placeholder="VÍ DỤ: 100000"
                                                         disabled={isSubmitted}
-                                                        className={`w-full bg-white/5 border border-white/10 rounded-2xl px-8 py-6 text-white font-black text-2xl outline-none focus:border-accent transition-all shadow-inner placeholder:text-slate-700 ${isSubmitted ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        className={`w-full bg-[#1a2333] border border-white/5 rounded-2xl px-8 py-6 text-white font-black text-3xl outline-none focus:border-[#6366f1] transition-all shadow-inner placeholder:text-slate-800 ${isSubmitted ? 'opacity-50' : ''}`}
                                                         required
                                                     />
-                                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-600 font-black italic uppercase text-lg">VNĐ</span>
+                                                    <span className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-700 font-black italic uppercase text-xl">VNĐ</span>
                                                 </div>
-                                                {amount && (
-                                                    <div className="ml-2 mt-2 flex items-center gap-2 animate-pulse">
-                                                        <span className="text-[15px] text-slate-500 font-bold uppercase tracking-widest leading-none">~</span>
-                                                        <span className="text-emerald-400 font-black text-sm italic tracking-tight">
-                                                            {Number(amount).toLocaleString('vi-VN')} VNĐ
-                                                        </span>
-                                                    </div>
-                                                )}
                                             </div>
 
-                                            {isSubmitted && (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
-                                                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
-                                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Chủ tài khoản</span>
-                                                        <span className="text-white font-black text-lg uppercase italic tracking-tight">{BANK_CONFIG.accountName}</span>
+                                            {isSubmitted && qrUrl && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 duration-500">
+                                                    <div className="bg-[#1a2333] p-6 rounded-3xl border border-white/5">
+                                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] block mb-2">CHỦ TÀI KHOẢN</span>
+                                                        <span className="text-white font-black text-xl italic tracking-tight">{BANK_CONFIG.accountName}</span>
                                                     </div>
-                                                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5 relative overflow-hidden group">
-                                                        <div className="absolute inset-0 bg-accent/5 translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
-                                                        <div className="relative z-10">
-                                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Bước 2: Nội dung chuyển khoản</span>
-                                                            <div className="flex items-center justify-between pointer-events-none">
-                                                                <span className="text-accent font-black text-2xl italic tracking-tighter">{transferContent}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(transferContent); toast.success('Đã copy nội dung'); }}
-                                                                    className="bg-accent text-white px-4 py-2 rounded-xl font-black text-[10px] hover:scale-110 active:scale-95 transition-all shadow-lg shadow-accent/20 pointer-events-auto"
-                                                                >
-                                                                    COPY
-                                                                </button>
-                                                            </div>
+                                                    <div className="bg-[#1a2333] p-6 rounded-3xl border border-white/5 group">
+                                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] block mb-2">NỘI DUNG CHUYỂN KHOẢN</span>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[#6366f1] font-black text-2xl italic tracking-tighter">{transferContent}</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => { navigator.clipboard.writeText(transferContent); toast.success('Đã copy nội dung'); }}
+                                                                className="bg-[#6366f1] text-white px-5 py-2.5 rounded-xl font-bold text-[10px] hover:scale-110 active:scale-95 transition-all shadow-lg shadow-[#6366f133]"
+                                                            >
+                                                                COPY
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             )}
 
-                                            <div className="bg-yellow-500/10 border border-yellow-500/20 p-6 rounded-3xl">
-                                                <p className="text-yellow-500 text-[11px] font-bold uppercase tracking-wider leading-relaxed">
-                                                    ⚠️ <span className="ml-1">Lưu ý:</span> {isSubmitted ? `Bạn phải nhập chính xác nội dung chuyển khoản là ${transferContent} để hệ thống có thể xác minh tiền của bạn.` : 'Vui lòng điền số tiền và nhấn nút bên dưới để nhận Mã QR và thông tin chuyển khoản.'}
+                                            <div className="bg-[#1e1e1a] border border-[#fbbf2433] p-6 rounded-2xl">
+                                                <p className="text-[#fbbf24] text-[11px] font-black uppercase tracking-wider leading-relaxed flex gap-2">
+                                                    <span className="shrink-0">⚠️</span>
+                                                    <span>LƯU Ý: {isSubmitted ? `BẠN PHẢI NHẬP CHÍNH XÁC NỘI DUNG CHUYỂN KHOẢN LÀ "${transferContent}" ĐỂ HỆ THỐNG CÓ THỂ TỰ ĐỘNG XÁC MINH.` : 'VUI LÒNG ĐIỀN SỐ TIỀN VÀ NHẤN NÚT BÊN DƯỚI ĐỂ NHẬN THÔNG TIN CHUYỂN KHOẢN.'}</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -320,120 +287,86 @@ const Deposit = () => {
 
                                     <button
                                         type="submit"
-                                        disabled={loading || (method !== 'card' && (!amount || isSubmitted))}
-                                        className={`w-full font-black py-6 rounded-[2rem] shadow-2xl transition-all duration-300 uppercase italic tracking-[0.2em] text-lg disabled:opacity-50 disabled:cursor-not-allowed group ${method === 'card' ? 'bg-orange-600 hover:bg-orange-500 shadow-orange-500/20' : 'bg-accent hover:bg-accent-hover shadow-accent/40'}`}
+                                        disabled={loading || (method !== 'card' && isSubmitted)}
+                                        className={`w-full font-black py-6 rounded-3xl shadow-2xl transition-all duration-300 uppercase italic tracking-[0.3em] text-lg active:scale-[0.98] disabled:opacity-50 ${method === 'card' ? 'bg-[#ff4d15] hover:bg-[#ff5d25] shadow-[#ff4d154d]' : 'bg-[#6366f1] hover:bg-[#7376f1] shadow-[#6366f14d]'}`}
                                     >
-                                        <span className="group-hover:tracking-[0.3em] transition-all duration-300">
-                                            {loading ? 'Hệ thống đang xử lý...' : method === 'card' ? 'Nạp thẻ ngay' : isSubmitted ? 'Vui lòng quét mã và chuyển tiền' : 'Tạo mã QR nạp tiền'}
-                                        </span>
+                                        {loading ? 'ĐANG XỬ LÝ...' : (method === 'card' ? 'NẠP THẺ NGAY' : (isSubmitted ? 'VUI LÒNG CHUYỂN TIỀN' : 'TẠO MÃ NẠP TIỀN'))}
                                     </button>
                                 </form>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
 
-                    {/* Right Side: QR Code Area / Card Tips */}
-                    <div className="lg:col-span-5 h-full">
+                    {/* Sidebar Area */}
+                    <div className="lg:col-span-4 h-full">
                         {method === 'card' ? (
-                            <div className="bg-secondary/40 backdrop-blur-xl p-10 rounded-[4rem] border border-white/5 shadow-2xl h-full flex flex-col animate-in fade-in slide-in-from-right-4 duration-500">
-                                <h3 className="text-2xl font-black text-white uppercase italic mb-8 flex items-center gap-4">
-                                    <span className="w-2 h-8 bg-orange-600 rounded-full"></span>
-                                    Lưu ý <span className="text-orange-600">nạp thẻ</span>
+                            <div className="bg-[#121927] rounded-[2rem] p-10 shadow-2xl border border-[#1e293b] h-full flex flex-col">
+                                <h3 className="text-2xl font-black text-white uppercase italic mb-10 flex items-center gap-4">
+                                    <div className="w-1.5 h-8 bg-[#ff4d15] rounded-full"></div>
+                                    LƯU Ý <span className="text-[#ff4d15]">NẠP THẺ</span>
                                 </h3>
 
-                                <div className="space-y-6">
-                                    <div className="flex gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 font-black text-orange-600 italic">01</div>
-                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-loose">Nhập chính xác số serial và mã thẻ, chọn đúng nhà mạng.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 font-black text-orange-600 italic">02</div>
-                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-loose">Chọn đúng mệnh giá, chọn sai sẽ bị mất thẻ hoặc bị phạt 50% giá trị.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 font-black text-orange-600 italic">03</div>
-                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-loose">Hệ thống xử lý tự động từ 1-5 phút tùy thuộc vào nhà mạng.</p>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 font-black text-orange-600 italic">04</div>
-                                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-loose">Thẻ zing và thẻ cào điện thoại đều có mức chiết khấu riêng theo từng thời điểm.</p>
-                                    </div>
+                                <div className="space-y-8">
+                                    {[
+                                        "NHẬP CHÍNH XÁC SỐ SERIAL VÀ MÃ THẺ. CHỌN ĐÚNG NHÀ MẠNG.",
+                                        "CHỌN ĐÚNG MỆNH GIÁ, CHỌN SAI SE BỊ MẤT THẺ HOẶC BỊ PHẠT 50% GIÁ TRỊ.",
+                                        "HỆ THỐNG XỬ LÝ TỰ ĐỘNG TỪ 1-5 PHÚT TÙY THUỘC VÀO NHÀ MẠNG.",
+                                        "THẺ ZING VÀ THẺ CÀO ĐIỆN THOẠI ĐỀU CÓ MỨC CHIẾT KHẤU RIÊNG THEO TỪNG THỜI ĐIỂM."
+                                    ].map((text, idx) => (
+                                        <div key={idx} className="flex gap-5">
+                                            <div className="w-10 h-10 rounded-xl bg-[#1a2333] flex items-center justify-center shrink-0 font-black text-[#ff4d15] italic shadow-lg border border-white/5">
+                                                0{idx + 1}
+                                            </div>
+                                            <p className="text-slate-400 text-[11px] font-black uppercase tracking-widest leading-loose pt-1">{text}</p>
+                                        </div>
+                                    ))}
                                 </div>
 
-                                <div className="mt-auto pt-10">
-                                    <div className="bg-white/5 p-6 rounded-3xl border border-dashed border-white/10 text-center">
-                                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Cần hỗ trợ gấp?</p>
-                                        <p className="text-white font-black uppercase italic tracking-widest text-sm hover:text-accent cursor-pointer transition">Liên hệ Fanpage Ngay</p>
+                                <div className="mt-auto pt-12">
+                                    <div className="bg-[#1a2333]/50 border border-dashed border-white/10 p-6 rounded-3xl text-center group cursor-pointer hover:bg-[#1a2333] transition">
+                                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2">CẦN HỖ TRỢ GẤP?</p>
+                                        <p className="text-white font-black uppercase italic tracking-widest text-sm group-hover:text-[#6366f1] transition">LIÊN HỆ FANPAGE NGAY</p>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-secondary/40 backdrop-blur-xl p-10 rounded-[4rem] border border-white/5 shadow-2xl text-center relative overflow-hidden h-full flex flex-col items-center justify-center animate-in fade-in slide-in-from-right-4 duration-500">
-                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
-
+                            <div className="bg-[#121927] rounded-[2rem] p-10 shadow-2xl border border-[#1e293b] text-center h-full flex flex-col items-center justify-center relative overflow-hidden">
                                 {method === 'bank' ? (
                                     <>
                                         <h3 className="text-2xl font-black text-white uppercase italic mb-8">
-                                            Quét Mã <span className="text-accent">VIETQR</span>
+                                            QUÉT MÃ <span className="text-[#6366f1]">VIETQR</span>
                                         </h3>
-
-                                        <div className="relative group">
-                                            <div className="absolute -inset-4 bg-accent/20 rounded-[3rem] blur-2xl opacity-50 group-hover:opacity-100 transition duration-700"></div>
-                                            <div className="relative bg-white p-6 rounded-[3rem] shadow-2xl border-4 border-white/10">
-                                                {isSubmitted && qrUrl ? (
-                                                    <img
-                                                        key={qrUrl}
-                                                        src={qrUrl}
-                                                        onError={(e) => {
-                                                            if (!e.target.src.includes('sepay.vn')) {
-                                                                e.target.src = `https://qr.sepay.vn/img?bank=MBBank&acc=${BANK_CONFIG.accountNo}&amount=${amount}&des=${depositCode}&mem=1`;
-                                                            }
-                                                        }}
-                                                        className="w-full max-w-[280px] mx-auto rounded-2xl animate-in zoom-in-75 duration-500"
-                                                        alt="QR Nạp tiền"
-                                                    />
-                                                ) : (
-                                                    <div className="w-[280px] h-[280px] flex items-center justify-center flex-col p-8 text-slate-300 text-center">
-                                                        <span className="text-5xl mb-4 opacity-20">💰</span>
-                                                        <p className="font-black uppercase text-[10px] tracking-widest leading-loose">Bấm nút "Tạo mã QR" <br /> để nhận mã nạp tiền</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-10 space-y-4">
-                                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
-                                                Hệ thống tự động ghi nhận sau khi chuyển khoản thành công
-                                            </p>
-                                            {isSubmitted && qrUrl && (
-                                                <a
-                                                    href={qrUrl}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="inline-block mt-4 bg-accent/20 hover:bg-accent/30 text-accent font-black px-6 py-3 rounded-2xl text-[10px] uppercase tracking-widest transition-all border border-accent/30"
-                                                >
-                                                    Mở Mã QR Trong Tab Mới
-                                                </a>
+                                        <div className="bg-white p-5 rounded-3xl shadow-[0px_0px_30px_rgba(99,102,241,0.2)]">
+                                            {isSubmitted && qrUrl ? (
+                                                <img src={qrUrl} alt="QR Code" className="w-64 h-64 mx-auto rounded-xl animate-in zoom-in-95 duration-500" />
+                                            ) : (
+                                                <div className="w-64 h-64 flex flex-col items-center justify-center text-slate-300">
+                                                    <span className="text-5xl mb-4 group-hover:scale-110 transition duration-500">💰</span>
+                                                    <p className="font-black uppercase text-[10px] tracking-widest leading-loose">BẤM "TẠO MÃ NẠP TIỀN"<br />ĐỂ NHẬN MÃ QR</p>
+                                                </div>
                                             )}
                                         </div>
+                                        <p className="mt-8 text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-loose max-w-[200px]">
+                                            TỰ ĐỘNG CỘNG TIỀN SAU 30S - 1P KHI CHUYỂN KHOẢN THÀNH CÔNG.
+                                        </p>
                                     </>
                                 ) : (
                                     <>
-                                        <div className="w-20 h-20 bg-[#a50064]/20 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-2xl border border-pink-500/20">📱</div>
-                                        <h3 className="text-2xl font-black text-white uppercase italic mb-4">Ví <span className="text-pink-500">MoMo</span></h3>
+                                        <div className="w-20 h-20 bg-[#a50064]/20 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-2xl border border-pink-500/10">📱</div>
+                                        <h3 className="text-2xl font-black text-white uppercase italic mb-4">VÍ <span className="text-pink-500">MOMO</span></h3>
                                         {isSubmitted ? (
-                                            <div className="w-full space-y-3 animate-in fade-in duration-500">
-                                                <div className="bg-white/5 p-5 rounded-3xl border border-white/5 flex justify-between items-center group hover:border-pink-500/30 transition">
-                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SĐT MoMo</span>
-                                                    <span className="text-white font-black text-lg tracking-widest">0987654321</span>
+                                            <div className="w-full space-y-4">
+                                                <div className="bg-[#1a2333] p-5 rounded-2xl border border-white/5 flex justify-between items-center">
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SĐT MOMO</span>
+                                                    <span className="text-white font-black text-lg">0869024105</span>
                                                 </div>
-                                                <div className="bg-white/5 p-5 rounded-3xl border border-white/5 flex justify-between items-center group hover:border-pink-500/30 transition">
-                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nội dung</span>
+                                                <div className="bg-[#1a2333] p-5 rounded-2xl border border-white/5 flex justify-between items-center">
+                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">NỘI DUNG</span>
                                                     <span className="text-pink-500 font-black text-lg">{depositCode}</span>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <p className="text-slate-500 font-bold mb-8 max-w-xs mx-auto text-sm leading-relaxed uppercase tracking-wider">Bấm nút tạo mã nạp tiền để nhận thông tin chuyển khoản MoMo</p>
+                                            <p className="text-slate-500 font-bold max-w-xs mx-auto text-[11px] leading-relaxed uppercase tracking-widest">BẤM NÚT TẠO MÃ ĐỂ NHẬN THÔNG TIN CHUYỂN KHOẢN MOMO</p>
                                         )}
                                     </>
                                 )}

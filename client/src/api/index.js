@@ -11,7 +11,7 @@ export const topupBalance = (amount) => API.post('/user/topup', { amount });
 export const withdrawCommission = () => API.post('/user/withdraw-commission');
 
 // Product Services
-export const fetchProducts = () => API.get('/products');
+export const fetchProducts = (params) => API.get('/products', { params });
 export const fetchProductById = (id) => API.get(`/products/${id}`);
 export const adminFetchProducts = () => API.get('/products/admin/all');
 export const adminCreateProduct = (data) => API.post('/products', data);

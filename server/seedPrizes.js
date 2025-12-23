@@ -11,11 +11,11 @@ mongoose.connect(process.env.MONGODB_URI)
     .catch(err => console.log('❌ Connection Error:', err));
 
 const seedPrizes = [
-    { name: '$5 Balance', type: 'balance', value: 5, chance: 0.4, color: '#f59e0b' },
-    { name: '$20 Balance', type: 'balance', value: 20, chance: 0.1, color: '#00e676' },
-    { name: '$50 Balance', type: 'balance', value: 50, chance: 0.05, color: '#2979ff' },
-    { name: 'Better Luck Next Time', type: 'empty', value: null, chance: 0.4, color: '#6b7280' },
-    { name: 'Jackpot $100', type: 'balance', value: 100, chance: 0.05, color: '#ff1744' }
+    { name: '10.000đ', type: 'balance', value: 10000, chance: 0.4, color: '#f59e0b' },
+    { name: '25.000đ', type: 'balance', value: 25000, chance: 0.2, color: '#00e676' },
+    { name: '30.000đ', type: 'balance', value: 30000, chance: 0.05, color: '#2979ff' },
+    { name: 'Chúc bạn may mắn', type: 'empty', value: null, chance: 0.3, color: '#6b7280' },
+    { name: 'Jackpot 100k', type: 'balance', value: 100000, chance: 0.05, color: '#ff1744' }
 ];
 
 const seedDB = async () => {
