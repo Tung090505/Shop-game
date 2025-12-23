@@ -3,7 +3,7 @@ import axios from 'axios';
 // Tự động nhận diện môi trường: Nếu chạy ở máy là localhost, nếu chạy online thì lấy link Hosting
 const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:5000/api'
-    : 'https://shop-game-dyf6.onrender.com/api'; // Đã thay link Render của bạn vào đây
+    : 'https://shop-game-dy16.onrender.com/api'; // Đã sửa link chuẩn (dy16)
 
 const api = axios.create({
     baseURL: API_URL,
