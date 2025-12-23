@@ -62,7 +62,7 @@ const Deposit = () => {
                     transactionId: depositCode
                 });
 
-                const url = `https://api.vietqr.io/${BANK_CONFIG.bankId}/${BANK_CONFIG.accountNo}/${amount}/${depositCode}/vietqr_net_2.jpg?accountName=${encodeURIComponent(BANK_CONFIG.accountName)}&t=${Date.now()}`;
+                const url = `https://img.vietqr.io/image/MB-${BANK_CONFIG.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
                 setQrUrl(url);
                 setIsSubmitted(true);
                 toast.success('Đã tạo yêu cầu! Vui lòng quét mã QR để chuyển khoản.');
@@ -115,28 +115,29 @@ const Deposit = () => {
     return (
         <div className="min-h-screen bg-[#070b14] py-12">
             <div className="container mx-auto px-4 max-w-7xl">
-                {/* Method Tabs */}
-                <div className="flex justify-center mb-10">
-                    <div className="bg-[#121927] p-2 rounded-3xl flex gap-2 shadow-[0px_4px_px_rgba(0,0,0,0.5)] border border-[#1e293b]">
-                        <button
-                            onClick={() => !isSubmitted && setMethod('bank')}
-                            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'bank' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_12px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
-                        >
-                            <span className="text-xl">🏛️</span> NGÂN HÀNG
-                        </button>
-
-                        <button
-                            onClick={() => !isSubmitted && setMethod('card')}
-                            className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
-                        >
-                            <span className="text-xl">💳</span> THẺ CÀO
-                        </button>
-                    </div>
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Main Content Area */}
                     <div className="lg:col-span-8">
+                        {/* Method Tabs */}
+                        <div className="flex justify-center mb-10">
+                            <div className="bg-[#121927] p-2 rounded-3xl flex gap-3 shadow-[0px_10px_30px_rgba(0,0,0,0.5)] border border-[#1e293b]">
+                                <button
+                                    onClick={() => !isSubmitted && setMethod('bank')}
+                                    className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'bank' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+                                >
+                                    <span className="text-xl">🏛️</span> NGÂN HÀNG
+                                </button>
+
+                                <button
+                                    onClick={() => !isSubmitted && setMethod('card')}
+                                    className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+                                >
+                                    <span className="text-xl">💳</span> THẺ CÀO
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="bg-[#121927] rounded-[2rem] p-8 shadow-2xl border border-[#1e293b]">
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="w-1.5 h-8 bg-[#6366f1] rounded-full shadow-[0px_0px_10px_#6366f1]"></div>
@@ -247,6 +248,21 @@ const Deposit = () => {
                                                     />
                                                     <span className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-700 font-black italic uppercase text-xl">VNĐ</span>
                                                 </div>
+
+                                                {!isSubmitted && (
+                                                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-4">
+                                                        {['20000', '50000', '100000', '200000', '500000'].map((amt) => (
+                                                            <button
+                                                                key={amt}
+                                                                type="button"
+                                                                onClick={() => setAmount(amt)}
+                                                                className={`py-3 rounded-xl font-black text-[11px] transition-all border-2 ${amount === amt ? 'bg-[#1e293b] border-[#6366f1] text-[#6366f1]' : 'bg-[#1a2333]/50 border-transparent text-slate-500 hover:bg-[#1a2333] hover:text-slate-300'}`}
+                                                            >
+                                                                {Number(amt).toLocaleString('vi-VN')}đ
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {isSubmitted && qrUrl && (
@@ -280,13 +296,25 @@ const Deposit = () => {
                                         </div>
                                     )}
 
-                                    <button
-                                        type="submit"
-                                        disabled={loading || (method !== 'card' && isSubmitted)}
-                                        className={`w-full font-black py-6 rounded-3xl shadow-2xl transition-all duration-300 uppercase italic tracking-[0.3em] text-lg active:scale-[0.98] disabled:opacity-50 ${method === 'card' ? 'bg-[#ff4d15] hover:bg-[#ff5d25] shadow-[#ff4d154d]' : 'bg-[#6366f1] hover:bg-[#7376f1] shadow-[#6366f14d]'}`}
-                                    >
-                                        {loading ? 'ĐANG XỬ LÝ...' : (method === 'card' ? 'NẠP THẺ NGAY' : (isSubmitted ? 'VUI LÒNG CHUYỂN TIỀN' : 'TẠO MÃ NẠP TIỀN'))}
-                                    </button>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="submit"
+                                            disabled={loading || (method !== 'card' && isSubmitted)}
+                                            className={`flex-1 font-black py-6 rounded-3xl shadow-2xl transition-all duration-300 uppercase italic tracking-[0.3em] text-lg active:scale-[0.98] disabled:opacity-50 ${method === 'card' ? 'bg-[#ff4d15] hover:bg-[#ff5d25] shadow-[#ff4d154d]' : 'bg-[#6366f1] hover:bg-[#7376f1] shadow-[#6366f14d]'}`}
+                                        >
+                                            {loading ? 'ĐANG XỬ LÝ...' : (method === 'card' ? 'NẠP THẺ NGAY' : (isSubmitted ? 'VUI LÒNG CHUYỂN TIỀN' : 'TẠO MÃ NẠP TIỀN'))}
+                                        </button>
+
+                                        {isSubmitted && method === 'bank' && (
+                                            <button
+                                                type="button"
+                                                onClick={handleReset}
+                                                className="px-8 bg-[#1a2333] text-white rounded-3xl font-black uppercase italic text-xs hover:bg-white/5 transition border border-white/5"
+                                            >
+                                                QUAY LẠI
+                                            </button>
+                                        )}
+                                    </div>
                                 </form>
                             )}
                         </div>
