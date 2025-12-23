@@ -117,17 +117,17 @@ const Deposit = () => {
             <div className="container mx-auto px-4 max-w-7xl">
                 {/* Method Tabs */}
                 <div className="flex justify-center mb-10">
-                    <div className="bg-[#121927] p-2 rounded-3xl flex gap-2 shadow-[0px_4px_24px_rgba(0,0,0,0.5)] border border-[#1e293b]">
+                    <div className="bg-[#121927] p-2 rounded-3xl flex gap-3 shadow-[0px_10px_30px_rgba(0,0,0,0.5)] border border-[#1e293b]">
                         <button
                             onClick={() => !isSubmitted && setMethod('bank')}
-                            className={`flex items-center gap-3 px-8 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'bank' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
+                            className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'bank' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
                         >
                             <span className="text-xl">🏛️</span> NGÂN HÀNG
                         </button>
 
                         <button
                             onClick={() => !isSubmitted && setMethod('card')}
-                            className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
+                            className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
                         >
                             <span className="text-xl">💳</span> THẺ CÀO
                         </button>
