@@ -151,25 +151,32 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Why Choose Us */}
-            <section className="py-24 bg-secondary/30 backdrop-blur-sm border-y border-white/5">
-                <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+            {/* Premium Trust & Security Bar */}
+            <section className="py-20 relative overflow-hidden bg-primary">
+                <div className="absolute inset-0 bg-accent/5 blur-[100px] pointer-events-none"></div>
+                <div className="container mx-auto px-4 relative z-10">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
                         {[
-                            { icon: '⚡', title: 'Giao dịch nhanh', desc: 'Nhận tài khoản ngay sau 1s' },
-                            { icon: '🛡️', title: 'Bảo mật 100%', desc: 'Hệ thống mã hóa tối tân' },
-                            { icon: '💎', title: 'Giá rẻ nhất', desc: 'Luôn có ưu đãi mỗi ngày' },
-                            { icon: '📞', title: 'Hỗ trợ 24/7', desc: 'Đội ngũ CSKH tận tâm' }
+                            { icon: '⚡', title: 'Siêu tốc', desc: 'Nhận acc sau 1s' },
+                            { icon: '🛡️', title: 'Bảo mật', desc: 'Safe 100%' },
+                            { icon: '💎', title: 'Uy tín', desc: 'Đã xác minh' },
+                            { icon: '📞', title: 'Hỗ trợ', desc: 'Tận tâm 24/7' }
                         ].map((item, i) => (
-                            <div key={i} className="text-center group">
-                                <div className="text-5xl mb-6 transform group-hover:scale-125 transition duration-300 inline-block">{item.icon}</div>
-                                <h4 className="text-xl font-black text-white uppercase italic mb-2">{item.title}</h4>
-                                <p className="text-gray-500 text-sm font-medium">{item.desc}</p>
+                            <div key={i} className="group flex items-center gap-4 bg-white/[0.02] border border-white/5 p-6 rounded-[2.5rem] hover:bg-white/5 hover:border-accent/20 transition-all duration-500 hover:-translate-y-1">
+                                <div className="w-14 h-14 bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl flex items-center justify-center text-3xl shadow-2xl group-hover:scale-110 transition duration-500">
+                                    {item.icon}
+                                </div>
+                                <div>
+                                    <h4 className="text-white font-black uppercase italic tracking-widest text-xs mb-1 group-hover:text-accent transition-colors">{item.title}</h4>
+                                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">{item.desc}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
+
+
         </div>
     );
 };

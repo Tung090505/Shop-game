@@ -17,12 +17,12 @@ const Navbar = () => {
             <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center h-20">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-2 group">
-                        <div className="w-10 h-10 bg-gradient-to-br from-accent to-accent-secondary rounded-xl flex items-center justify-center shadow-lg shadow-accent/20 group-hover:scale-110 transition duration-300">
-                            <span className="text-white font-black text-xl italic">S</span>
+                    <Link to="/" className="flex items-center space-x-3 group">
+                        <div className="w-11 h-11 bg-gradient-to-br from-accent via-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-accent/20 group-hover:rotate-12 transition-all duration-500">
+                            <span className="text-white font-black text-2xl italic tracking-tighter">S</span>
                         </div>
                         <span className="text-2xl font-black tracking-tighter text-white uppercase italic">
-                            SHOP<span className="text-accent">NICK</span>
+                            SHOP<span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-indigo-400">NICK</span>
                         </span>
                     </Link>
 

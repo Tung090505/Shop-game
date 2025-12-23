@@ -32,9 +32,12 @@ function App() {
       <AuthProvider>
         <Router>
           <Toaster position="top-right" reverseOrder={false} />
-          <div className="flex flex-col min-h-screen bg-primary font-sans">
+          <div className="flex flex-col min-h-screen bg-primary font-sans relative">
+            {/* Premium Noise Overlay */}
+            <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+
             <Navbar />
-            <main className="flex-grow">
+            <main className="flex-grow relative z-10">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
