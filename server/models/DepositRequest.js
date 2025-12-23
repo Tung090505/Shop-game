@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const DepositRequestSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     amount: { type: Number, required: true },
-    method: { type: String, enum: ['bank', 'momo', 'card'], required: true },
+    method: { type: String, enum: ['bank', 'card'], required: true },
     transactionId: { type: String, required: true, unique: true },
     cardDetails: {
         type: { type: String },

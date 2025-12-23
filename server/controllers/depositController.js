@@ -61,7 +61,7 @@ exports.submitDeposit = async (req, res) => {
             });
         }
 
-        // Xử lý nạp Bank/Momo mặc định
+        // Xử lý nạp Bank mặc định
         const newRequest = new DepositRequest({
             user: req.user._id,
             amount,
@@ -114,7 +114,7 @@ exports.updateDeposit = async (req, res) => {
             if (!user) return res.status(404).json({ message: 'User not found' });
 
             // Nếu nạp thẻ cào thì áp dụng chiết khấu 20% (khách nhận 80%)
-            // Nếu nạp Bank/Momo thì nhận 100%
+            // Nếu nạp Bank thì nhận 100%
             const creditAmount = deposit.method === 'card' ? Math.floor(deposit.amount * 0.8) : deposit.amount;
 
             user.balance += creditAmount;

@@ -124,12 +124,7 @@ const Deposit = () => {
                         >
                             <span className="text-xl">🏛️</span> NGÂN HÀNG
                         </button>
-                        <button
-                            onClick={() => !isSubmitted && setMethod('momo')}
-                            className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'momo' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
-                        >
-                            <span className="text-xl">🌸</span> MOMO
-                        </button>
+
                         <button
                             onClick={() => !isSubmitted && setMethod('card')}
                             className={`flex items-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200'}`}
@@ -331,45 +326,24 @@ const Deposit = () => {
                             </div>
                         ) : (
                             <div className="bg-[#121927] rounded-[2rem] p-10 shadow-2xl border border-[#1e293b] text-center h-full flex flex-col items-center justify-center relative overflow-hidden">
-                                {method === 'bank' ? (
-                                    <>
-                                        <h3 className="text-2xl font-black text-white uppercase italic mb-8">
-                                            QUÉT MÃ <span className="text-[#6366f1]">VIETQR</span>
-                                        </h3>
-                                        <div className="bg-white p-5 rounded-3xl shadow-[0px_0px_30px_rgba(99,102,241,0.2)]">
-                                            {isSubmitted && qrUrl ? (
-                                                <img src={qrUrl} alt="QR Code" className="w-64 h-64 mx-auto rounded-xl animate-in zoom-in-95 duration-500" />
-                                            ) : (
-                                                <div className="w-64 h-64 flex flex-col items-center justify-center text-slate-300">
-                                                    <span className="text-5xl mb-4 group-hover:scale-110 transition duration-500">💰</span>
-                                                    <p className="font-black uppercase text-[10px] tracking-widest leading-loose">BẤM "TẠO MÃ NẠP TIỀN"<br />ĐỂ NHẬN MÃ QR</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <p className="mt-8 text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-loose max-w-[200px]">
-                                            TỰ ĐỘNG CỘNG TIỀN SAU 30S - 1P KHI CHUYỂN KHOẢN THÀNH CÔNG.
-                                        </p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="w-20 h-20 bg-[#a50064]/20 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-2xl border border-pink-500/10">📱</div>
-                                        <h3 className="text-2xl font-black text-white uppercase italic mb-4">VÍ <span className="text-pink-500">MOMO</span></h3>
-                                        {isSubmitted ? (
-                                            <div className="w-full space-y-4">
-                                                <div className="bg-[#1a2333] p-5 rounded-2xl border border-white/5 flex justify-between items-center">
-                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">SĐT MOMO</span>
-                                                    <span className="text-white font-black text-lg">0869024105</span>
-                                                </div>
-                                                <div className="bg-[#1a2333] p-5 rounded-2xl border border-white/5 flex justify-between items-center">
-                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">NỘI DUNG</span>
-                                                    <span className="text-pink-500 font-black text-lg">{depositCode}</span>
-                                                </div>
-                                            </div>
+                                <>
+                                    <h3 className="text-2xl font-black text-white uppercase italic mb-8">
+                                        QUÉT MÃ <span className="text-[#6366f1]">VIETQR</span>
+                                    </h3>
+                                    <div className="bg-white p-5 rounded-3xl shadow-[0px_0px_30px_rgba(99,102,241,0.2)]">
+                                        {isSubmitted && qrUrl ? (
+                                            <img src={qrUrl} alt="QR Code" className="w-64 h-64 mx-auto rounded-xl animate-in zoom-in-95 duration-500" />
                                         ) : (
-                                            <p className="text-slate-500 font-bold max-w-xs mx-auto text-[11px] leading-relaxed uppercase tracking-widest">BẤM NÚT TẠO MÃ ĐỂ NHẬN THÔNG TIN CHUYỂN KHOẢN MOMO</p>
+                                            <div className="w-64 h-64 flex flex-col items-center justify-center text-slate-300">
+                                                <span className="text-5xl mb-4 group-hover:scale-110 transition duration-500">💰</span>
+                                                <p className="font-black uppercase text-[10px] tracking-widest leading-loose">BẤM "TẠO MÃ NẠP TIỀN"<br />ĐỂ NHẬN MÃ QR</p>
+                                            </div>
                                         )}
-                                    </>
-                                )}
+                                    </div>
+                                    <p className="mt-8 text-slate-400 text-[10px] font-bold uppercase tracking-widest leading-loose max-w-[200px]">
+                                        TỰ ĐỘNG CỘNG TIỀN SAU 30S - 1P KHI CHUYỂN KHOẢN THÀNH CÔNG.
+                                    </p>
+                                </>
                             </div>
                         )}
                     </div>
