@@ -62,7 +62,7 @@ const Deposit = () => {
                     transactionId: depositCode
                 });
 
-                const url = `https://api.vietqr.io/${BANK_CONFIG.bankId}/${BANK_CONFIG.accountNo}/${amount}/${depositCode}/vietqr_net_2.jpg?accountName=${encodeURIComponent(BANK_CONFIG.accountName)}&t=${Date.now()}`;
+                const url = `https://img.vietqr.io/image/MB-${BANK_CONFIG.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
                 setQrUrl(url);
                 setIsSubmitted(true);
                 toast.success('Đã tạo yêu cầu! Vui lòng quét mã QR để chuyển khoản.');
@@ -248,6 +248,21 @@ const Deposit = () => {
                                                     />
                                                     <span className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-700 font-black italic uppercase text-xl">VNĐ</span>
                                                 </div>
+
+                                                {!isSubmitted && (
+                                                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2 mt-4">
+                                                        {['20000', '50000', '100000', '200000', '500000'].map((amt) => (
+                                                            <button
+                                                                key={amt}
+                                                                type="button"
+                                                                onClick={() => setAmount(amt)}
+                                                                className={`py-3 rounded-xl font-black text-[11px] transition-all border-2 ${amount === amt ? 'bg-[#1e293b] border-[#6366f1] text-[#6366f1]' : 'bg-[#1a2333]/50 border-transparent text-slate-500 hover:bg-[#1a2333] hover:text-slate-300'}`}
+                                                            >
+                                                                {Number(amt).toLocaleString('vi-VN')}đ
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {isSubmitted && qrUrl && (
@@ -281,13 +296,25 @@ const Deposit = () => {
                                         </div>
                                     )}
 
-                                    <button
-                                        type="submit"
-                                        disabled={loading || (method !== 'card' && isSubmitted)}
-                                        className={`w-full font-black py-6 rounded-3xl shadow-2xl transition-all duration-300 uppercase italic tracking-[0.3em] text-lg active:scale-[0.98] disabled:opacity-50 ${method === 'card' ? 'bg-[#ff4d15] hover:bg-[#ff5d25] shadow-[#ff4d154d]' : 'bg-[#6366f1] hover:bg-[#7376f1] shadow-[#6366f14d]'}`}
-                                    >
-                                        {loading ? 'ĐANG XỬ LÝ...' : (method === 'card' ? 'NẠP THẺ NGAY' : (isSubmitted ? 'VUI LÒNG CHUYỂN TIỀN' : 'TẠO MÃ NẠP TIỀN'))}
-                                    </button>
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="submit"
+                                            disabled={loading || (method !== 'card' && isSubmitted)}
+                                            className={`flex-1 font-black py-6 rounded-3xl shadow-2xl transition-all duration-300 uppercase italic tracking-[0.3em] text-lg active:scale-[0.98] disabled:opacity-50 ${method === 'card' ? 'bg-[#ff4d15] hover:bg-[#ff5d25] shadow-[#ff4d154d]' : 'bg-[#6366f1] hover:bg-[#7376f1] shadow-[#6366f14d]'}`}
+                                        >
+                                            {loading ? 'ĐANG XỬ LÝ...' : (method === 'card' ? 'NẠP THẺ NGAY' : (isSubmitted ? 'VUI LÒNG CHUYỂN TIỀN' : 'TẠO MÃ NẠP TIỀN'))}
+                                        </button>
+
+                                        {isSubmitted && method === 'bank' && (
+                                            <button
+                                                type="button"
+                                                onClick={handleReset}
+                                                className="px-8 bg-[#1a2333] text-white rounded-3xl font-black uppercase italic text-xs hover:bg-white/5 transition border border-white/5"
+                                            >
+                                                QUAY LẠI
+                                            </button>
+                                        )}
+                                    </div>
                                 </form>
                             )}
                         </div>
