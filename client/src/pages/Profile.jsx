@@ -1,15 +1,22 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { fetchMyOrders, fetchMyDeposits } from '../api';
+import { fetchMyOrders, fetchMyDeposits, changePassword } from '../api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
     const { user } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [deposits, setDeposits] = useState([]);
     const [activeTab, setActiveTab] = useState('orders');
     const [loading, setLoading] = useState(true);
+
+    // Change Password State
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+    const [updating, setUpdating] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -32,6 +39,27 @@ const Profile = () => {
     const copyToClipboard = (text, label) => {
         navigator.clipboard.writeText(text);
         toast.success(`Đã copy ${label}`);
+    };
+
+    const handlePasswordChange = async (e) => {
+        e.preventDefault();
+        if (passwords.new !== passwords.confirm) return toast.error('Mật khẩu mới không khớp');
+        if (passwords.new.length < 6) return toast.error('Mật khẩu phải từ 6 ký tự');
+
+        setUpdating(true);
+        try {
+            await changePassword({
+                currentPassword: passwords.current,
+                newPassword: passwords.new
+            });
+            toast.success('Đổi mật khẩu thành công');
+            setShowPasswordModal(false);
+            setPasswords({ current: '', new: '', confirm: '' });
+        } catch (err) {
+            toast.error(err.response?.data || 'Đổi mật khẩu thất bại');
+        } finally {
+            setUpdating(false);
+        }
     };
 
     if (!user) return null;
@@ -76,8 +104,18 @@ const Profile = () => {
                         </div>
 
                         <div className="flex flex-col gap-3 w-full md:w-auto">
-                            <button className="bg-white/5 hover:bg-white/10 text-white font-black px-8 py-4 rounded-2xl border border-white/5 transition-all uppercase italic tracking-widest text-xs">Cài đặt bảo mật</button>
-                            <button className="bg-accent hover:bg-accent-hover text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-accent/20 transition-all uppercase italic tracking-widest text-xs">Lịch sử giao dịch</button>
+                            <button
+                                onClick={() => setShowPasswordModal(true)}
+                                className="bg-white/5 hover:bg-white/10 text-white font-black px-8 py-4 rounded-2xl border border-white/5 transition-all uppercase italic tracking-widest text-xs"
+                            >
+                                Cài đặt bảo mật
+                            </button>
+                            <button
+                                onClick={() => navigate('/transactions')}
+                                className="bg-accent hover:bg-accent-hover text-white font-black px-8 py-4 rounded-2xl shadow-xl shadow-accent/20 transition-all uppercase italic tracking-widest text-xs"
+                            >
+                                Lịch sử giao dịch
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -213,6 +251,63 @@ const Profile = () => {
                     )}
                 </div>
             </div>
+
+            {/* Change Password Modal */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="bg-[#0f172a] border border-white/10 w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Đổi mật khẩu</h2>
+                            <button onClick={() => setShowPasswordModal(false)} className="text-slate-500 hover:text-white transition">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handlePasswordChange} className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mật khẩu hiện tại</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={passwords.current}
+                                    onChange={e => setPasswords({ ...passwords, current: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white outline-none focus:border-accent transition-all"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Mật khẩu mới</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={passwords.new}
+                                    onChange={e => setPasswords({ ...passwords, new: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white outline-none focus:border-accent transition-all"
+                                    placeholder="Tối thiểu 6 ký tự"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Xác nhận mật khẩu mới</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={passwords.confirm}
+                                    onChange={e => setPasswords({ ...passwords, confirm: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/5 rounded-2xl px-6 py-4 text-white outline-none focus:border-accent transition-all"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+
+                            <button
+                                disabled={updating}
+                                className="w-full bg-accent hover:bg-accent-hover text-white font-black py-5 rounded-2xl shadow-xl shadow-accent/20 transition-all uppercase italic tracking-[0.2em] text-xs disabled:opacity-50 mt-4"
+                            >
+                                {updating ? 'Đang xử lý...' : 'Cập nhật mật khẩu'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

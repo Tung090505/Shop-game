@@ -9,6 +9,7 @@ router.get('/profile', verifyToken, authController.getProfile);
 router.get('/transactions', verifyToken, authController.getTransactions);
 router.post('/topup', verifyToken, authController.topup);
 router.post('/withdraw-commission', verifyToken, authController.withdrawCommission);
+router.put('/change-password', verifyToken, authController.changePassword);
 
 // Admin Routes
 router.get('/all-users', verifyToken, authController.getAllUsers);

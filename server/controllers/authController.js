@@ -215,6 +215,7 @@ exports.updateUserBalance = async (req, res) => {
     }
 };
 
+
 exports.deleteUser = async (req, res) => {
     try {
         if (req.user.role !== 'admin') return res.status(403).send('Access denied');
@@ -222,5 +223,23 @@ exports.deleteUser = async (req, res) => {
         res.json({ message: 'User deleted successfully' });
     } catch (err) {
         res.status(500).send(err);
+    }
+};
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        const validPass = await bcrypt.compare(currentPassword, user.password);
+        if (!validPass) return res.status(400).send('Mật khẩu hiện tại không chính xác');
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        res.json({ message: 'Đổi mật khẩu thành công' });
+    } catch (err) {
+        res.status(500).send(err.message);
     }
 };

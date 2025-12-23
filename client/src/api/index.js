@@ -9,6 +9,7 @@ export const fetchProfile = () => API.get('/user/profile');
 export const fetchTransactions = () => API.get('/user/transactions');
 export const topupBalance = (amount) => API.post('/user/topup', { amount });
 export const withdrawCommission = () => API.post('/user/withdraw-commission');
+export const changePassword = (data) => API.put('/user/change-password', data);
 
 // Product Services
 export const fetchProducts = (params) => API.get('/products', { params });
