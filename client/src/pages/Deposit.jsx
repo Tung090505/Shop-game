@@ -115,28 +115,29 @@ const Deposit = () => {
     return (
         <div className="min-h-screen bg-[#070b14] py-12">
             <div className="container mx-auto px-4 max-w-7xl">
-                {/* Method Tabs */}
-                <div className="flex justify-center mb-10">
-                    <div className="bg-[#121927] p-2 rounded-3xl flex gap-3 shadow-[0px_10px_30px_rgba(0,0,0,0.5)] border border-[#1e293b]">
-                        <button
-                            onClick={() => !isSubmitted && setMethod('bank')}
-                            className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'bank' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
-                        >
-                            <span className="text-xl">🏛️</span> NGÂN HÀNG
-                        </button>
-
-                        <button
-                            onClick={() => !isSubmitted && setMethod('card')}
-                            className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
-                        >
-                            <span className="text-xl">💳</span> THẺ CÀO
-                        </button>
-                    </div>
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     {/* Main Content Area */}
                     <div className="lg:col-span-8">
+                        {/* Method Tabs */}
+                        <div className="flex justify-center mb-10">
+                            <div className="bg-[#121927] p-2 rounded-3xl flex gap-3 shadow-[0px_10px_30px_rgba(0,0,0,0.5)] border border-[#1e293b]">
+                                <button
+                                    onClick={() => !isSubmitted && setMethod('bank')}
+                                    className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'bank' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+                                >
+                                    <span className="text-xl">🏛️</span> NGÂN HÀNG
+                                </button>
+
+                                <button
+                                    onClick={() => !isSubmitted && setMethod('card')}
+                                    className={`flex items-center justify-center gap-3 px-10 py-4 rounded-2xl font-bold uppercase italic text-sm transition-all duration-300 min-w-[200px] ${method === 'card' ? 'bg-[#ff4d15] text-white shadow-[0px_4px_15px_#ff4d154d]' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+                                >
+                                    <span className="text-xl">💳</span> THẺ CÀO
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="bg-[#121927] rounded-[2rem] p-8 shadow-2xl border border-[#1e293b]">
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="w-1.5 h-8 bg-[#6366f1] rounded-full shadow-[0px_0px_10px_#6366f1]"></div>
