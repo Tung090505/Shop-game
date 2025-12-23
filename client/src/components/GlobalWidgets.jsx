@@ -7,11 +7,20 @@ const GlobalWidgets = () => {
     // Dữ liệu mẫu cho thông báo xã hội
     const activities = [
         { name: 'Tùng Lê', action: 'vừa mua thành công', item: 'Acc Liên Quân #1293' },
-        { name: 'Hoàng Minh', action: 'vừa nạp', item: '200,000đ từ MB Bank' },
-        { name: 'Khánh Duy', action: 'vừa quay trúng', item: '9999 Quân Huy' },
-        { name: 'Văn Nam', action: 'vừa mua thành công', item: 'Acc Tốc Chiến #4562' },
-        { name: 'Anh Tú', action: 'vừa nạp', item: '500,000đ qua Thẻ cào' },
+        { name: 'Hoàng Minh', action: 'vừa nạp', item: '20,000đ từ MB Bank' },
+        { name: 'Văn Nam', action: 'vừa mua thành công', item: 'Acc TFT #4562' },
+        { name: 'Anh Tú', action: 'vừa nạp', item: '50,000đ qua Thẻ cào' },
         { name: 'Quốc Bảo', action: 'vừa mua thành công', item: 'Acc Free Fire #8822' },
+        { name: 'Minh Tuấn', action: 'vừa nạp', item: '10,000đ từ Vietcombank' },
+        { name: 'Gia Bảo', action: 'vừa mua thành công', item: 'Acc Liên Quân #7732' },
+        { name: 'Ngọc Ánh', action: 'vừa nạp', item: '10,000đ từ Techcombank' },
+        { name: 'Hữu Thắng', action: 'vừa mua thành công', item: 'Acc LOL #2231' },
+        { name: 'Thế Vinh', action: 'vừa nạp', item: '50,000đ qua Thẻ cào' },
+        { name: 'Trọng Hiếu', action: 'vừa mua thành công', item: 'Acc Free Fire #1102' },
+        { name: 'Duy Mạnh', action: 'vừa nạp', item: '100,000đ từ ACB Bank' },
+        { name: 'Kim Ngân', action: 'vừa nạp', item: '200,000đ qua Thẻ cào ' },
+        { name: 'Hoàng Long', action: 'vừa mua thành công', item: 'Acc Liên Quân #9001' },
+        { name: 'Tiến Dũng', action: 'vừa nạp', item: '150,000đ từ TP Bank' },
     ];
 
     useEffect(() => {
