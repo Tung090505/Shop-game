@@ -101,16 +101,6 @@ const GlobalWidgets = () => {
                     </div>
                 </a>
 
-                {/* Messenger/Phone Button */}
-                <a
-                    href="tel:0335028503"
-                    className="group relative flex items-center justify-center w-14 h-14 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl hover:bg-accent hover:border-accent transition-all duration-300"
-                >
-                    <span className="text-xl">📞</span>
-                    <div className="absolute right-full mr-4 px-4 py-2 bg-white text-black text-[10px] font-black uppercase rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap shadow-xl">
-                        Gọi Hotline
-                    </div>
-                </a>
             </div>
 
             <style>{`

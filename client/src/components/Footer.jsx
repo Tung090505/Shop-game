@@ -26,12 +26,7 @@ const Footer = () => {
                             </p>
                         </div>
 
-                        <div className="flex gap-4">
-                            <a href="https://www.facebook.com/Ryon05" className="flex items-center gap-3 px-6 py-3 bg-[#1877F2]/10 border border-[#1877F2]/20 rounded-2xl text-[#1877F2] font-black uppercase italic text-[10px] tracking-widest hover:bg-[#1877F2] hover:text-white transition-all duration-300 shadow-lg shadow-[#1877F2]/5">
-                                <span className="text-base font-black">f</span> Facebook
-                            </a>
 
-                        </div>
                     </div>
 
                     {/* Quick Links Group */}
