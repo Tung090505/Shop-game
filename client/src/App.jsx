@@ -3,8 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { HelmetProvider } from 'react-helmet-async';
 import Navbar from './components/Navbar';
+import AnnouncementBar from './components/AnnouncementBar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
+import GlobalWidgets from './components/GlobalWidgets';
+import ScrollToTop from './components/ScrollToTop';
 
 import Shop from './pages/Shop';
 import Categories from './pages/Categories';
@@ -31,12 +34,14 @@ function App() {
     <HelmetProvider>
       <AuthProvider>
         <Router>
+          <ScrollToTop />
           <Toaster position="top-right" reverseOrder={false} />
           <div className="flex flex-col min-h-screen bg-primary font-sans relative">
             {/* Premium Noise Overlay */}
             <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
             <Navbar />
+            <AnnouncementBar />
             <main className="flex-grow relative z-10">
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -61,6 +66,7 @@ function App() {
                 <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
               </Routes>
             </main>
+            <GlobalWidgets />
             <Footer />
           </div>
         </Router>

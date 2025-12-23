@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchProductById, createOrder, fetchProfile } from '../api';
+import { fetchProductById, createOrder, fetchProfile, fetchProducts } from '../api';
+import * as api from '../api';
 import { AuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import SEO from '../components/SEO';
@@ -14,11 +15,19 @@ const ProductDetail = () => {
     const { user, setUser } = useContext(AuthContext);
     const navigate = useNavigate();
 
+    const [relatedProducts, setRelatedProducts] = useState([]);
+
     useEffect(() => {
         const loadProduct = async () => {
             try {
                 const res = await fetchProductById(id);
                 setProduct(res.data);
+
+                // Fetch related products (same category)
+                if (res.data.category) {
+                    const relatedRes = await api.fetchProducts({ category: res.data.category });
+                    setRelatedProducts(relatedRes.data.filter(p => p._id !== id).slice(0, 4));
+                }
             } catch (err) {
                 toast.error('Không tìm thấy sản phẩm');
             } finally {
@@ -78,8 +87,17 @@ const ProductDetail = () => {
             />
 
             <div className="container mx-auto px-4 max-w-6xl">
+                {/* Breadcrumbs */}
+                <div className="flex items-center gap-3 mb-8 text-[10px] font-black uppercase tracking-[0.2em] italic">
+                    <span className="text-slate-500 cursor-pointer hover:text-white transition" onClick={() => navigate('/')}>TRANG CHỦ</span>
+                    <span className="text-slate-700">/</span>
+                    <span className="text-slate-500 cursor-pointer hover:text-white transition" onClick={() => navigate('/shop')}>CỬA HÀNG</span>
+                    <span className="text-slate-700">/</span>
+                    <span className="text-accent">{product.title}</span>
+                </div>
+
                 {/* Product Section */}
-                <div className="bg-secondary/40 backdrop-blur-2xl rounded-[4rem] border border-white/5 shadow-2xl overflow-hidden flex flex-col lg:flex-row relative">
+                <div className="bg-secondary/40 backdrop-blur-2xl rounded-[4rem] border border-white/5 shadow-2xl overflow-hidden flex flex-col lg:flex-row relative mb-20">
                     {/* Glowing Orbs */}
                     <div className="absolute top-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-[100px] -ml-48 -mt-48"></div>
                     <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-[100px] -mr-48 -mb-48"></div>
@@ -174,6 +192,41 @@ const ProductDetail = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Related Products Section */}
+                {relatedProducts.length > 0 && (
+                    <div className="mt-32">
+                        <div className="flex items-center justify-between mb-12">
+                            <div>
+                                <p className="text-accent font-black uppercase text-[10px] tracking-[0.3em] mb-2">Gợi ý dành riêng cho bạn</p>
+                                <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter">TÀI KHOẢN <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-indigo-400">TƯƠNG TỰ</span></h2>
+                            </div>
+                            <button
+                                onClick={() => navigate('/shop')}
+                                className="hidden md:block bg-white/5 hover:bg-white/10 text-white font-black text-[10px] px-8 py-4 rounded-2xl border border-white/10 uppercase italic tracking-widest transition"
+                            >
+                                XEM TẤT CẢ
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {relatedProducts.map(p => (
+                                <div
+                                    key={p._id}
+                                    onClick={() => { navigate(`/product/${p._id}`); window.scrollTo(0, 0); }}
+                                    className="bg-secondary/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 overflow-hidden group hover:scale-[1.02] transition-all cursor-pointer"
+                                >
+                                    <div className="aspect-[16/9] overflow-hidden">
+                                        <img src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                                    </div>
+                                    <div className="p-6">
+                                        <h3 className="text-white font-black uppercase italic tracking-tighter text-lg truncate group-hover:text-accent transition">{p.title}</h3>
+                                        <p className="text-accent font-black text-xl italic mt-2">{p.price?.toLocaleString('vi-VN')}đ</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Premium Confirmation Modal */}
