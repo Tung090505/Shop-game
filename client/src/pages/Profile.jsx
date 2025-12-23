@@ -108,7 +108,7 @@ const Profile = () => {
                                 onClick={() => setShowPasswordModal(true)}
                                 className="bg-white/5 hover:bg-white/10 text-white font-black px-8 py-4 rounded-2xl border border-white/5 transition-all uppercase italic tracking-widest text-xs"
                             >
-                                Cài đặt bảo mật
+                                Đổi Mật Khẩu
                             </button>
                             <button
                                 onClick={() => navigate('/transactions')}
