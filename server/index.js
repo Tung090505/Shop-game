@@ -37,7 +37,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Database Connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.log(err));
 

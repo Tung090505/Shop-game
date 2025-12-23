@@ -2,11 +2,13 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const LuckyWheelPrize = require('./models/LuckyWheelPrize');
 
-dotenv.config();
+const path = require('path');
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected for Seeding Prizes'))
-    .catch(err => console.log(err));
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('✅ MongoDB Connected for Seeding Prizes'))
+    .catch(err => console.log('❌ Connection Error:', err));
 
 const seedPrizes = [
     { name: '$5 Balance', type: 'balance', value: 5, chance: 0.4, color: '#f59e0b' },

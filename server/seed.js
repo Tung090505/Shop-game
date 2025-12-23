@@ -4,11 +4,13 @@ const bcrypt = require('bcryptjs');
 const Product = require('./models/Product');
 const User = require('./models/User');
 
-dotenv.config();
+const path = require('path');
 
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected for Seeding'))
-    .catch(err => console.log(err));
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('✅ MongoDB Connected for Seeding'))
+    .catch(err => console.log('❌ Connection Error:', err));
 
 const seedProducts = [
     // ... (existing products)
