@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const verifyToken = require('../middleware/auth');
 const authController = require('../controllers/authController');
+console.log('--- Auth Routes Loaded ---');
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);
