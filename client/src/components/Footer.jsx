@@ -50,11 +50,12 @@ const Footer = () => {
                                 Chính sách
                             </h4>
                             <ul className="space-y-4">
-                                <li><a href="#" className="text-slate-500 hover:text-accent-secondary transition-all duration-300 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-[1px] bg-accent-secondary transition-all duration-300"></span> Điều khoản dịch vụ</a></li>
-                                <li><a href="#" className="text-slate-500 hover:text-accent-secondary transition-all duration-300 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-[1px] bg-accent-secondary transition-all duration-300"></span> Chính sách bảo mật</a></li>
-                                <li><a href="#" className="text-slate-500 hover:text-accent-secondary transition-all duration-300 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-[1px] bg-accent-secondary transition-all duration-300"></span> Bảo hành tài khoản</a></li>
+                                <li><Link to="/terms" className="text-slate-500 hover:text-accent-secondary transition-all duration-300 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-[1px] bg-accent-secondary transition-all duration-300"></span> Điều khoản dịch vụ</Link></li>
+                                <li><Link to="/privacy" className="text-slate-500 hover:text-accent-secondary transition-all duration-300 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-[1px] bg-accent-secondary transition-all duration-300"></span> Chính sách bảo mật</Link></li>
+                                <li><Link to="/warranty" className="text-slate-500 hover:text-accent-secondary transition-all duration-300 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-[1px] bg-accent-secondary transition-all duration-300"></span> Bảo hành tài khoản</Link></li>
                                 <li><a href="#" className="text-slate-500 hover:text-accent-secondary transition-all duration-300 text-[11px] font-black uppercase tracking-widest flex items-center gap-2 group"><span className="w-0 group-hover:w-2 h-[1px] bg-accent-secondary transition-all duration-300"></span> Câu hỏi (FAQ)</a></li>
                             </ul>
+
                         </div>
 
                         <div className="col-span-2 md:col-span-1 space-y-8">

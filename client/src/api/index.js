@@ -10,6 +10,9 @@ export const fetchTransactions = () => API.get('/user/transactions');
 export const topupBalance = (amount) => API.post('/user/topup', { amount });
 export const withdrawCommission = () => API.post('/user/withdraw-commission');
 export const changePassword = (data) => API.post('/user/change-password', data);
+export const forgotPassword = (email) => API.post('/user/forgot-password', { email });
+export const resetPassword = (token, password) => API.post(`/user/reset-password/${token}`, { password });
+
 
 // Product Services
 export const fetchProducts = (params) => API.get('/products', { params });

@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+
 
 const Login = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
@@ -63,8 +64,9 @@ const Login = () => {
                     <div>
                         <div className="flex justify-between mb-2">
                             <label className="text-slate-400 text-sm font-medium">Password</label>
-                            <a href="#" className="text-blue-500 hover:text-blue-400 text-xs font-semibold">Forgot password?</a>
+                            <Link to="/forgot-password" title="Quên mật khẩu" className="text-blue-500 hover:text-blue-400 text-xs font-semibold">Forgot password?</Link>
                         </div>
+
                         <input
                             type="password"
                             placeholder="••••••••"

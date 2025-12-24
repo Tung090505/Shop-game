@@ -11,6 +11,9 @@ router.get('/transactions', verifyToken, authController.getTransactions);
 router.post('/topup', verifyToken, authController.topup);
 router.post('/withdraw-commission', verifyToken, authController.withdrawCommission);
 router.post('/change-password', verifyToken, authController.changePassword);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password/:token', authController.resetPassword);
+
 
 // Admin Routes
 router.get('/all-users', verifyToken, authController.getAllUsers);

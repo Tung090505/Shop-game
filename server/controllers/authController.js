@@ -243,3 +243,66 @@ exports.changePassword = async (req, res) => {
         res.status(500).send(err.message);
     }
 };
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) return res.status(404).send('Email không tồn tại trong hệ thống');
+
+        const token = crypto.randomBytes(20).toString('hex');
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+        console.log(`[DEV] Password reset link for ${user.username}: ${resetUrl}`);
+
+        const html = `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 40px; background-color: #0f172a; color: white; border-radius: 20px;">
+                <h2 style="color: #6366f1; text-align: center; font-size: 28px; font-style: italic; font-weight: 900;">RESET PASSWORD</h2>
+                <p style="text-align: center; color: #94a3b8; font-size: 16px;">Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản ${user.username}.</p>
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="${resetUrl}" style="background-color: #6366f1; color: white; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: bold; display: inline-block;">ĐẶT LẠI MẬT KHẨU</a>
+                </div>
+                <p style="text-align: center; color: #64748b; font-size: 12px;">Link này sẽ hết hạn trong vòng 1 giờ.</p>
+                <hr style="border: none; border-top: 1px solid #1e293b; margin: 30px 0;">
+                <p style="font-size: 11px; color: #475569; text-align: center;">Nếu bạn không yêu cầu điều này, hãy bỏ qua email này.</p>
+            </div>
+        `;
+
+        try {
+            await sendEmail(user.email, "Đặt lại mật khẩu - ShopNickTFT", html);
+            res.send("Link đặt lại mật khẩu đã được gửi vào Email của bạn.");
+        } catch (emailError) {
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save();
+            res.status(500).send("Không thể gửi email. Vui lòng thử lại sau.");
+        }
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const user = await User.findOne({
+            resetPasswordToken: req.params.token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) return res.status(400).send('Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn');
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.password, salt);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.send("Mật khẩu đã được cập nhật thành công!");
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};
+

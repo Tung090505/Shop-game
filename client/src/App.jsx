@@ -26,8 +26,14 @@ import AdminDeposits from './pages/AdminDeposits';
 import AdminUsers from './pages/AdminUsers';
 import AdminPrizes from './pages/AdminPrizes';
 import AdminCategories from './pages/AdminCategories';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import Warranty from './pages/Warranty';
 import AdminRoute from './components/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
+
 
 function App() {
   return (
@@ -55,8 +61,14 @@ function App() {
                 <Route path="/topup" element={<Topup />} />
                 <Route path="/transactions" element={<Transactions />} />
                 <Route path="/affiliate" element={<Affiliate />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/warranty" element={<Warranty />} />
 
                 {/* Admin Routes */}
+
                 <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                 <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
                 <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
