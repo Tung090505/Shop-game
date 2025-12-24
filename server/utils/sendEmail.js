@@ -5,14 +5,17 @@ const sendEmail = async (email, subject, html) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.SMTP_USER, // Email của bạn (gmail)
-                pass: process.env.SMTP_PASS, // Mật khẩu ứng dụng (16 ký tự)
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
             },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 10000,
         });
 
-        console.log(`[Email] Đang chuẩn bị gửi thư...`);
-        console.log(`[Email] Từ: ${process.env.SMTP_USER}`);
-        console.log(`[Email] Đến: ${email}`);
+        console.log(`[Email] Đang kiểm tra kết nối...`);
+        await transporter.verify();
+        console.log(`[Email] Đang gửi thư tới: ${email}`);
 
         const info = await transporter.sendMail({
             from: `"ShopNickTFT" <${process.env.SMTP_USER}>`,
