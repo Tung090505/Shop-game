@@ -1,33 +1,39 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 const sendEmail = async (email, subject, html) => {
     try {
-        const resendApiKey = process.env.RESEND_API_KEY;
+        const smtpUser = process.env.SMTP_USER;
+        const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
 
-        if (!resendApiKey) {
-            throw new Error("Thiếu RESEND_API_KEY trên Render. Hãy lấy key từ resend.com");
+        if (!smtpUser || !smtpPass) {
+            throw new Error("Thiếu cấu hình SMTP_USER hoặc SMTP_PASS trên server.");
         }
 
-        const resend = new Resend(resendApiKey);
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: smtpUser,
+                pass: smtpPass,
+            },
+            // Thêm các cài đặt để cố gắng vượt qua giới hạn timeout của hosting
+            connectionTimeout: 45000,
+            greetingTimeout: 45000,
+            socketTimeout: 45000,
+        });
 
-        console.log(`[Email] Đang gửi thư qua API Resend tới: ${email}`);
+        console.log(`[Email] Đang gửi thư từ: ${smtpUser} tới: ${email}`);
 
-        const { data, error } = await resend.emails.send({
-            from: 'ShopNickTFT <onboarding@resend.dev>',
-            to: email, // Lưu ý: Free tier chỉ gửi được cho chính email đăng ký Resend hoặc email đã verify
+        const info = await transporter.sendMail({
+            from: `"ShopNickTFT" <${smtpUser}>`,
+            to: email,
             subject: subject,
             html: html,
         });
 
-        if (error) {
-            console.error("[Email] Lỗi Resend:", error);
-            throw new Error(error.message);
-        }
-
-        console.log(`[Email] Gửi thành công! ID: ${data.id}`);
-        return data;
+        console.log(`[Email] Thư đã được gửi thành công. ID: ${info.messageId}`);
+        return info;
     } catch (error) {
-        console.error("[Email] Lỗi gửi thư:");
+        console.error("[Email] Lỗi chi tiết:");
         console.error(error.message);
         throw error;
     }
