@@ -254,7 +254,8 @@ exports.forgotPassword = async (req, res) => {
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
 
-        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+        const frontendUrl = process.env.FRONTEND_URL || 'https://shop-game-neon.vercel.app';
+        const resetUrl = `${frontendUrl}/reset-password/${token}`;
 
         console.log(`[DEV] Password reset link for ${user.username}: ${resetUrl}`);
 
