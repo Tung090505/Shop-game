@@ -2,20 +2,23 @@ const nodemailer = require('nodemailer');
 
 const sendEmail = async (email, subject, html) => {
     try {
+        if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+            throw new Error("Thiếu cấu hình SMTP_USER hoặc SMTP_PASS trên server.");
+        }
+
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // Dùng SSL/TLS
             auth: {
                 user: process.env.SMTP_USER,
                 pass: process.env.SMTP_PASS,
             },
-            connectionTimeout: 10000,
-            greetingTimeout: 10000,
-            socketTimeout: 10000,
+            connectionTimeout: 15000,
         });
 
-        console.log(`[Email] Đang kiểm tra kết nối...`);
-        await transporter.verify();
-        console.log(`[Email] Đang gửi thư tới: ${email}`);
+        console.log(`[Email] Thử kết nối SMTP qua cổng 465...`);
+        console.log(`[Email] Gửi tới: ${email}`);
 
         const info = await transporter.sendMail({
             from: `"ShopNickTFT" <${process.env.SMTP_USER}>`,
