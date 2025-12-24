@@ -1,6 +1,5 @@
 {
     "rootDirectory": "client",
-    "installCommand": "npm install --force",
     "rewrites": [
         {
             "source": "/api/(.*)",
