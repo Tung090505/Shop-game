@@ -28,7 +28,7 @@ const sendEmail = async (email, subject, html) => {
     } catch (error) {
         console.error("[Email] Lỗi gửi thư:");
         console.error(error.message);
-        return error;
+        throw error;
     }
 };
 
