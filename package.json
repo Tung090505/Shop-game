@@ -6,6 +6,9 @@
         "client": "cd client && npm run dev",
         "start": "concurrently \"npm run server\" \"npm run client\""
     },
+    "dependencies": {
+        "nodemailer": "^6.9.0"
+    },
     "devDependencies": {
         "concurrently": "^8.0.0"
     }
