@@ -4,29 +4,28 @@ const sendEmail = async (email, subject, html) => {
     try {
         console.log(`[Email] Đang gửi thư nhờ Vercel gửi hộ tới: ${email}`);
 
+        // Dùng mã bí mật mặc định nếu chưa có env
+        const mailSecret = process.env.MAIL_SECRET || 'TungLoCoHot2025';
+
         const response = await axios.post('https://shop-game-neon.vercel.app/api/send-email', {
             email,
             subject,
             html,
-            secret: process.env.MAIL_SECRET
+            secret: mailSecret
         }, {
-            timeout: 30000 // Tăng lên 30 giây cho chắc chắn
+            timeout: 30000
         });
 
         console.log(`[Email] Vercel đã gửi mail thành công!`);
         return response.data;
     } catch (error) {
-        console.error("[Email] Lỗi khi nhờ Vercel gửi:");
-        let errorMessage = "Không thể kết nối tới dịch vụ email (Timeout)";
+        console.error("[Email] Lỗi khi gửi qua Vercel:");
+        let errorMessage = "Không thể kết nối dịch vụ email";
 
         if (error.response) {
-            errorMessage = error.response.data?.message || `Lỗi từ Vercel: ${error.response.status}`;
-            console.error(errorMessage);
-        } else if (error.code === 'ECONNABORTED') {
-            console.error("Lỗi: Quá thời gian chờ (Timeout) khi gọi tới Vercel.");
+            errorMessage = error.response.data?.message || `Lỗi Vercel: ${error.response.status}`;
         } else {
             errorMessage = error.message;
-            console.error(errorMessage);
         }
 
         throw new Error(errorMessage);
