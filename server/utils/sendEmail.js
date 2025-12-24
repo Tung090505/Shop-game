@@ -1,40 +1,32 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const sendEmail = async (email, subject, html) => {
     try {
-        const smtpUser = process.env.SMTP_USER;
-        const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
+        const resendApiKey = process.env.RESEND_API_KEY;
 
-        if (!smtpUser || !smtpPass) {
-            throw new Error("Thiếu cấu hình SMTP_USER hoặc SMTP_PASS trên server.");
+        if (!resendApiKey) {
+            throw new Error("Chưa cấu hình RESEND_API_KEY trên Render.");
         }
 
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: smtpUser,
-                pass: smtpPass,
-            },
-            // Thêm các cài đặt để cố gắng vượt qua giới hạn timeout của hosting
-            connectionTimeout: 45000,
-            greetingTimeout: 45000,
-            socketTimeout: 45000,
-        });
+        const resend = new Resend(resendApiKey);
 
-        console.log(`[Email] Đang gửi thư từ: ${smtpUser} tới: ${email}`);
+        console.log(`[Email] Đang gửi qua Resend API tới: ${email}`);
 
-        const info = await transporter.sendMail({
-            from: `"ShopNickTFT" <${smtpUser}>`,
+        const { data, error } = await resend.emails.send({
+            from: 'ShopNickTFT <onboarding@resend.dev>',
             to: email,
             subject: subject,
             html: html,
         });
 
-        console.log(`[Email] Thư đã được gửi thành công. ID: ${info.messageId}`);
-        return info;
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        console.log(`[Email] Gửi thành công qua Resend! ID: ${data.id}`);
+        return data;
     } catch (error) {
-        console.error("[Email] Lỗi chi tiết:");
-        console.error(error.message);
+        console.error("[Email] Lỗi gửi thư (Resend):", error.message);
         throw error;
     }
 };
