@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchProducts, adminFetchProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct, uploadImage, fetchCategories } from '../api';
+import { fetchProducts, adminFetchProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct, uploadImage, fetchCategories, getAssetUrl } from '../api';
 import toast from 'react-hot-toast';
 
 const AdminProducts = () => {
@@ -181,7 +181,7 @@ const AdminProducts = () => {
                                         <div className="flex items-center space-x-6">
                                             <div className="relative shrink-0">
                                                 <img
-                                                    src={product.images[0]}
+                                                    src={getAssetUrl(product.images[0])}
                                                     className="w-20 h-20 rounded-[2rem] object-cover border-2 border-white/10 group-hover:border-accent transition-all duration-500"
                                                     alt=""
                                                     crossOrigin="anonymous"
@@ -400,7 +400,7 @@ const AdminProducts = () => {
                                             ) : formData.images.length > 0 ? (
                                                 <>
                                                     <img
-                                                        src={formData.images[0]}
+                                                        src={getAssetUrl(formData.images[0])}
                                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                         alt="Preview"
                                                         crossOrigin="anonymous"
@@ -425,7 +425,7 @@ const AdminProducts = () => {
                                             <div className="grid grid-cols-5 gap-4 px-2">
                                                 {formData.images.map((img, idx) => (
                                                     <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-white/10 group/thumb">
-                                                        <img src={img} className="w-full h-full object-cover" crossOrigin="anonymous" alt="" />
+                                                        <img src={getAssetUrl(img)} className="w-full h-full object-cover" crossOrigin="anonymous" alt="" />
                                                         <button
                                                             type="button"
                                                             onClick={() => removeImage(idx)}

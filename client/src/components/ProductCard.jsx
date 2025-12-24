@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { getAssetUrl } from '../api';
 
 const ProductCard = ({ product }) => {
     const isSold = product.status === 'sold';
@@ -9,7 +10,7 @@ const ProductCard = ({ product }) => {
             {/* Image Section */}
             <div className="relative h-52 overflow-hidden">
                 <img
-                    src={product.images?.[0] || 'https://dummyimage.com/600x400/1f2937/ffffff&text=No+Image'}
+                    src={product.images?.[0] ? getAssetUrl(product.images[0]) : 'https://dummyimage.com/600x400/1f2937/ffffff&text=No+Image'}
                     alt={product.title}
                     className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isSold ? 'grayscale opacity-50' : ''}`}
                 />

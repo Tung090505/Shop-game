@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-import API from './config'; // Sử dụng instance đã cấu hình URL chuẩn (dy16)
+import API, { getAssetUrl } from './config'; // Sử dụng instance đã cấu hình URL chuẩn (dy16)
+
+export { getAssetUrl };
 
 // Auth Services
 export const login = (formData) => API.post('/user/login', formData);

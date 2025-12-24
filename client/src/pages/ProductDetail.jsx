@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchProductById, createOrder, fetchProfile, fetchProducts } from '../api';
+import { fetchProductById, createOrder, fetchProfile, fetchProducts, getAssetUrl } from '../api';
 import * as api from '../api';
 import { AuthContext } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -107,7 +107,7 @@ const ProductDetail = () => {
                         <div className="relative group overflow-hidden rounded-[3rem] border border-white/10 shadow-2xl aspect-[16/9]">
                             {product.images?.[0] ? (
                                 <img
-                                    src={product.images[0]}
+                                    src={getAssetUrl(product.images[0])}
                                     alt={product.title}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                                 />
@@ -120,7 +120,7 @@ const ProductDetail = () => {
                         <div className="grid grid-cols-4 gap-4 mt-6">
                             {product.images?.slice(0, 4).map((img, i) => (
                                 <div key={i} className="aspect-square rounded-2xl border border-white/5 overflow-hidden hover:border-accent transition cursor-pointer">
-                                    <img src={img} className="w-full h-full object-cover" alt="" />
+                                    <img src={getAssetUrl(img)} className="w-full h-full object-cover" alt="" />
                                 </div>
                             ))}
                         </div>
@@ -216,7 +216,7 @@ const ProductDetail = () => {
                                     className="bg-secondary/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 overflow-hidden group hover:scale-[1.02] transition-all cursor-pointer"
                                 >
                                     <div className="aspect-[16/9] overflow-hidden">
-                                        <img src={p.images?.[0]} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                                        <img src={getAssetUrl(p.images?.[0])} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
                                     </div>
                                     <div className="p-6">
                                         <h3 className="text-white font-black uppercase italic tracking-tighter text-lg truncate group-hover:text-accent transition">{p.title}</h3>

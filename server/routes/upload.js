@@ -36,9 +36,7 @@ router.post('/', verifyToken, upload.array('images', 5), (req, res) => {
         return res.status(400).json({ message: 'Vui lòng chọn ít nhất một file' });
     }
 
-    const imageUrls = req.files.map(file =>
-        `${process.env.BASE_URL || 'http://localhost:5000'}/uploads/${file.filename}`
-    );
+    const imageUrls = req.files.map(file => `/uploads/${file.filename}`);
 
     res.json({ imageUrls });
 });

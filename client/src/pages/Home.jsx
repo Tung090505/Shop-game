@@ -3,7 +3,7 @@ import LuckyWheel from '../components/LuckyWheel';
 import FlashSale from '../components/FlashSale';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
-import { fetchCategories, fetchProducts } from '../api';
+import { fetchCategories, fetchProducts, getAssetUrl } from '../api';
 
 const Home = () => {
     const [categories, setCategories] = useState([]);
@@ -117,7 +117,7 @@ const Home = () => {
                                 >
                                     <div
                                         className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-110"
-                                        style={{ backgroundImage: game.image ? `url(${game.image})` : 'none', backgroundColor: '#1a1a1a' }}
+                                        style={{ backgroundImage: game.image ? `url(${getAssetUrl(game.image)})` : 'none', backgroundColor: '#1a1a1a' }}
                                     >
                                         {!game.image && <div className="w-full h-full flex items-center justify-center text-7xl opacity-10">🎮</div>}
                                     </div>

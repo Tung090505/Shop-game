@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchCategories, adminCreateCategory, adminUpdateCategory, adminDeleteCategory, uploadImage } from '../api';
+import { fetchCategories, adminCreateCategory, adminUpdateCategory, adminDeleteCategory, uploadImage, getAssetUrl } from '../api';
 import toast from 'react-hot-toast';
 
 const AdminCategories = () => {
@@ -175,7 +175,7 @@ const AdminCategories = () => {
 
                             <div className="relative h-48 overflow-hidden bg-white/5 pointer-events-none">
                                 {cat.image ? (
-                                    <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                                    <img src={getAssetUrl(cat.image)} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">🎮</div>
                                 )}
