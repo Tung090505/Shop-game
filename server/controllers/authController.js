@@ -278,7 +278,7 @@ exports.forgotPassword = async (req, res) => {
             user.resetPasswordToken = undefined;
             user.resetPasswordExpires = undefined;
             await user.save();
-            res.status(500).send("Không thể gửi email. Vui lòng thử lại sau.");
+            res.status(500).send(`Lỗi gửi mail: ${emailError.message}`);
         }
     } catch (err) {
         res.status(500).send(err.message);
