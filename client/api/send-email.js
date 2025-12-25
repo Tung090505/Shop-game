@@ -26,9 +26,11 @@ export default async function handler(req, res) {
             host: "smtp.gmail.com",
             port: 465,
             secure: true, // Use SSL
+            secure: true, // Use SSL
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS.replace(/\s+/g, ''), // Tự động xóa khoảng trắng nếu có
+                // Hardcoded for debugging - WILL REMOVE LATER
+                user: "tungark1@gmail.com",
+                pass: "sojseoinhtwnxstt",
             },
         });
 
