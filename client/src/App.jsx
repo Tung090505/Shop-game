@@ -33,6 +33,7 @@ import Privacy from './pages/Privacy';
 import Warranty from './pages/Warranty';
 import AdminRoute from './components/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import DebugData from './pages/DebugData';
 import FixImageUrls from './pages/FixImageUrls';
 
@@ -41,51 +42,53 @@ function App() {
   return (
     <HelmetProvider>
       <AuthProvider>
-        <Router>
-          <ScrollToTop />
-          <Toaster position="top-right" reverseOrder={false} />
-          <div className="flex flex-col min-h-screen bg-primary font-sans relative">
-            {/* Premium Noise Overlay */}
-            <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <SocketProvider>
+          <Router>
+            <ScrollToTop />
+            <Toaster position="top-right" reverseOrder={false} />
+            <div className="flex flex-col min-h-screen bg-primary font-sans relative">
+              {/* Premium Noise Overlay */}
+              <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[9999] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
 
-            <Navbar />
-            <AnnouncementBar />
-            <main className="flex-grow relative">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/shop" element={<Shop />} />
-                <Route path="/game/:id" element={<GameDetail />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/topup" element={<Topup />} />
-                <Route path="/transactions" element={<Transactions />} />
-                <Route path="/affiliate" element={<Affiliate />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/warranty" element={<Warranty />} />
-                <Route path="/debug" element={<DebugData />} />
+              <Navbar />
+              <AnnouncementBar />
+              <main className="flex-grow relative">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/shop" element={<Shop />} />
+                  <Route path="/game/:id" element={<GameDetail />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/product/:id" element={<ProductDetail />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/topup" element={<Topup />} />
+                  <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/affiliate" element={<Affiliate />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password/:token" element={<ResetPassword />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/warranty" element={<Warranty />} />
+                  <Route path="/debug" element={<DebugData />} />
 
-                {/* Admin Routes */}
+                  {/* Admin Routes */}
 
-                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-                <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
-                <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
-                <Route path="/admin/deposits" element={<AdminRoute><AdminDeposits /></AdminRoute>} />
-                <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-                <Route path="/admin/prizes" element={<AdminRoute><AdminPrizes /></AdminRoute>} />
-                <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
-                <Route path="/admin/fix-images" element={<AdminRoute><FixImageUrls /></AdminRoute>} />
-              </Routes>
-            </main>
-            <GlobalWidgets />
-            <Footer />
-          </div>
-        </Router>
+                  <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                  <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
+                  <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+                  <Route path="/admin/deposits" element={<AdminRoute><AdminDeposits /></AdminRoute>} />
+                  <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                  <Route path="/admin/prizes" element={<AdminRoute><AdminPrizes /></AdminRoute>} />
+                  <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
+                  <Route path="/admin/fix-images" element={<AdminRoute><FixImageUrls /></AdminRoute>} />
+                </Routes>
+              </main>
+              <GlobalWidgets />
+              <Footer />
+            </div>
+          </Router>
+        </SocketProvider>
       </AuthProvider>
     </HelmetProvider>
   );

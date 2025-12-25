@@ -89,6 +89,13 @@ exports.handleBankWebhook = async (req, res) => {
             description: `Nạp tiền tự động SePay (Nội dung: ${transferContent})`
         }).save();
 
+        // 6. Gửi thông báo real-time cho người dùng
+        const { notifyDepositSuccess } = require('../utils/socket');
+        notifyDepositSuccess(user._id.toString(), {
+            amount: amount,
+            newBalance: user.balance
+        });
+
         console.log(`[OK] Đã nạp ${amount}đ vào tài khoản ${user.username}`);
         res.status(200).send('OK');
 
@@ -139,6 +146,13 @@ exports.handleCardWebhook = async (req, res) => {
                     amount: creditAmount,
                     description: `Nạp thẻ cào thành công (${deposit.cardDetails?.type} ${realAmount.toLocaleString()}đ)`
                 }).save();
+
+                // Gửi thông báo real-time
+                const { notifyDepositSuccess } = require('../utils/socket');
+                notifyDepositSuccess(user._id.toString(), {
+                    amount: creditAmount,
+                    newBalance: user.balance
+                });
 
                 console.log(`[TỰ ĐỘNG] Đã cộng ${creditAmount}đ cho ${user.username}`);
             }

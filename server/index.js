@@ -71,7 +71,15 @@ app.get('/', (req, res) => {
     res.send('Shop Game API is running');
 });
 
-// Start Server
-app.listen(PORT, () => {
+// Start Server with Socket.IO
+const http = require('http');
+const server = http.createServer(app);
+
+// Initialize Socket.IO
+const { initSocket } = require('./utils/socket');
+initSocket(server);
+
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Socket.IO initialized`);
 });

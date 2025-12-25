@@ -1,10 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import * as api from '../api';
 import { AuthContext } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
 
 const Deposit = () => {
-    const { user } = useContext(AuthContext);
+    const { user, setUser } = useContext(AuthContext);
+    const { socket } = useSocket();
+    const navigate = useNavigate();
     const [amount, setAmount] = useState('');
     const [method, setMethod] = useState('card');
     const [depositCode, setDepositCode] = useState('');
@@ -37,6 +41,45 @@ const Deposit = () => {
         const randomStr = Math.floor(100000 + Math.random() * 900000);
         setDepositCode(`NAP${randomStr}`);
     }, []);
+
+    // Listen for deposit approval notification
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleDepositApproved = (data) => {
+            console.log('💰 Deposit approved:', data);
+
+            // Show success notification
+            toast.success(
+                `🎉 Nạp tiền thành công! +${data.amount.toLocaleString('vi-VN')}đ\nSố dư mới: ${data.newBalance.toLocaleString('vi-VN')}đ`,
+                {
+                    duration: 5000,
+                    style: {
+                        background: '#10b981',
+                        color: '#fff',
+                        fontWeight: 'bold',
+                        fontSize: '14px'
+                    }
+                }
+            );
+
+            // Update user balance in context
+            if (setUser && user) {
+                setUser({ ...user, balance: data.newBalance });
+            }
+
+            // Redirect to home after 2 seconds
+            setTimeout(() => {
+                navigate('/');
+            }, 2000);
+        };
+
+        socket.on('deposit_approved', handleDepositApproved);
+
+        return () => {
+            socket.off('deposit_approved', handleDepositApproved);
+        };
+    }, [socket, navigate, user, setUser]);
 
     const transferContent = depositCode;
 
