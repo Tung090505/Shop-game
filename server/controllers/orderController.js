@@ -30,11 +30,20 @@ exports.createOrder = async (req, res) => {
 
         if (user.referredBy) {
             const commission = Math.floor(product.price * 0.05);
+            console.log(`[ORDER] Checking commission for User ${user.username}, Ref: ${user.referredBy}, Price: ${product.price}, Comm: ${commission}`);
+
             if (commission > 0) {
                 const referrer = await User.findById(user.referredBy);
                 if (referrer) {
+                    console.log(`[ORDER] Found Referrer: ${referrer.username}, Old Balance: ${referrer.commissionBalance}`);
+
+                    // Initialize if undefined to avoid NaN
+                    if (!referrer.commissionBalance) referrer.commissionBalance = 0;
+
                     referrer.commissionBalance += commission;
                     await referrer.save();
+
+                    console.log(`[ORDER] Commission added. New Balance: ${referrer.commissionBalance}`);
 
                     await new Transaction({
                         userId: referrer._id,
@@ -42,7 +51,11 @@ exports.createOrder = async (req, res) => {
                         amount: commission,
                         description: `Affiliate Commission from ${user.username} buying ${product.title}`
                     }).save();
+                } else {
+                    console.log(`[ORDER] Referrer not found for ID: ${user.referredBy}`);
                 }
+            } else {
+                console.log(`[ORDER] Commission is 0, skipping.`);
             }
         }
 

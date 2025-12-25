@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Register = () => {
     const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -8,11 +8,17 @@ const Register = () => {
     const [success, setSuccess] = useState(false);
     const { register } = useContext(AuthContext);
 
+    // Get ref from URL
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const refCode = queryParams.get('ref');
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         try {
-            const res = await register(formData.username, formData.email, formData.password);
+            // Pass refCode to register function
+            const res = await register(formData.username, formData.email, formData.password, refCode);
             setSuccess(true);
         } catch (err) {
             setError(err.response?.data || 'Registration failed');
@@ -44,6 +50,11 @@ const Register = () => {
                 <div className="mb-8 text-center">
                     <h2 className="text-4xl font-extrabold text-white mb-2 tracking-tight">Join Us</h2>
                     <p className="text-slate-400">Create an account to start trading</p>
+                    {refCode && (
+                        <p className="text-green-400 text-sm mt-2 bg-green-500/10 py-1 px-3 rounded-full inline-block border border-green-500/20">
+                            Referred by code: <span className="font-bold">{refCode}</span>
+                        </p>
+                    )}
                 </div>
 
                 {error && (
