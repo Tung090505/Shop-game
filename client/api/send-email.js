@@ -28,8 +28,9 @@ export default async function handler(req, res) {
             secure: true, // Use SSL
             secure: true, // Use SSL
             auth: {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '',
+                user: process.env.SMTP_USER || "tungark1@gmail.com",
+                // FALLBACK: Use hardcoded password if Env var fails (For immediate launch stability)
+                pass: process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : "sojseoinhtwnxstt",
             },
         });
 
