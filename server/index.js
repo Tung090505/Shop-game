@@ -49,6 +49,7 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log('MongoDB Connected');
         initSettings();
+        startAutoCleanup();
     })
     .catch(err => console.log(err));
 
@@ -64,6 +65,7 @@ const categoryRoute = require('./routes/categories');
 const maintenanceRoute = require('./routes/maintenance');
 const settingRoute = require('./routes/settings');
 const { initSettings } = require('./controllers/settingController');
+const { startAutoCleanup } = require('./controllers/depositController');
 
 app.use('/api/user', authRoute);
 app.use('/api/products', productRoute);

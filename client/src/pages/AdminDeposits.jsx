@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 const AdminDeposits = () => {
     const [deposits, setDeposits] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const loadDeposits = async () => {
         try {
@@ -35,6 +36,23 @@ const AdminDeposits = () => {
 
     const pendingCount = deposits.filter(d => d.status === 'pending').length;
 
+    const filteredDeposits = deposits.filter(deposit => {
+        const term = searchTerm.toLowerCase();
+        const username = deposit.user?.username?.toLowerCase() || '';
+        const txId = deposit.transactionId?.toLowerCase() || '';
+        const amount = deposit.amount?.toString() || '';
+        const serial = deposit.cardDetails?.serial?.toLowerCase() || '';
+        const pin = deposit.cardDetails?.pin?.toLowerCase() || '';
+        const content = `NAP${deposit.transactionId}`.toLowerCase(); // Often used as content
+
+        return username.includes(term) ||
+            txId.includes(term) ||
+            amount.includes(term) ||
+            serial.includes(term) ||
+            pin.includes(term) ||
+            content.includes(term);
+    });
+
     return (
         <div className="container mx-auto px-4 py-12">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
@@ -52,6 +70,22 @@ const AdminDeposits = () => {
                 )}
             </div>
 
+            {/* Search Bar */}
+            <div className="mb-8">
+                <div className="relative max-w-md">
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm giao dịch (Mã, Username, Số tiền...)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-[#121927] border border-slate-700 rounded-2xl py-4 pl-12 pr-6 text-white font-bold placeholder:text-slate-600 focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all outline-none"
+                    />
+                    <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+            </div>
+
             <div className="bg-secondary/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -66,7 +100,7 @@ const AdminDeposits = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 text-sm font-medium">
-                            {deposits.map((deposit) => (
+                            {filteredDeposits.map((deposit) => (
                                 <tr key={deposit._id} className="hover:bg-white/[0.02] transition">
                                     <td className="px-8 py-6">
                                         <div className="flex flex-col">

@@ -115,7 +115,9 @@ exports.updateDeposit = async (req, res) => {
         const deposit = await DepositRequest.findById(req.params.id);
 
         if (!deposit) return res.status(404).json({ message: 'Deposit not found' });
-        if (deposit.status !== 'pending') return res.status(400).json({ message: 'Request already processed' });
+
+        // Allow retry/approve if rejected, but block if already approved
+        if (deposit.status === 'approved') return res.status(400).json({ message: 'Request already processed successfully' });
 
         if (status === 'approved') {
             const user = await User.findById(deposit.user);
@@ -145,4 +147,26 @@ exports.updateDeposit = async (req, res) => {
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
+};
+
+// AUTO TASK: Hủy các giao dịch treo quá 3 phút (theo yêu cầu chống spam)
+exports.startAutoCleanup = () => {
+    console.log('🔄 Starting Deposit Auto-Cleanup Task...');
+    setInterval(async () => {
+        try {
+            const expireTime = new Date(Date.now() - 3 * 60 * 1000); // 3 minutes ago
+
+            // Tìm và hủy các đơn pending quá 3 phút
+            const result = await DepositRequest.updateMany(
+                { status: 'pending', createdAt: { $lt: expireTime } },
+                { $set: { status: 'rejected', updatedAt: Date.now() } }
+            );
+
+            if (result.modifiedCount > 0) {
+                console.log(`🧹 Auto-cancelled ${result.modifiedCount} expired deposit requests.`);
+            }
+        } catch (error) {
+            console.error('❌ Auto-cleanup failed:', error);
+        }
+    }, 60000); // Run every 60 seconds
 };
