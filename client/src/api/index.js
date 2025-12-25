@@ -41,6 +41,7 @@ export const fetchMyDeposits = () => API.get('/deposits/my-deposits');
 export const adminFetchAllUsers = () => API.get('/user/all-users');
 export const adminFetchAllTransactions = () => API.get('/user/all-transactions');
 export const adminFetchAllOrders = () => API.get('/orders/all');
+export const adminFetchRevenueStats = () => API.get('/orders/stats');
 export const adminFetchAllDeposits = () => API.get('/deposits/all');
 export const adminUpdateDeposit = (id, status) => API.put(`/deposits/${id}`, { status });
 export const adminUpdateUserBalance = (id, amount) => API.put(`/user/update-balance/${id}`, { amount });

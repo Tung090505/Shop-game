@@ -118,3 +118,58 @@ exports.updateOrder = async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 };
+
+exports.getRevenueStats = async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access Denied' });
+
+    try {
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        // 1. Total Revenue
+        const totalRevenueResult = await Order.aggregate([
+            { $group: { _id: null, total: { $sum: '$price' } } }
+        ]);
+        const totalRevenue = totalRevenueResult[0]?.total || 0;
+
+        // 2. Revenue Today
+        const todayRevenueResult = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfDay } } },
+            { $group: { _id: null, total: { $sum: '$price' } } }
+        ]);
+        const todayRevenue = todayRevenueResult[0]?.total || 0;
+
+        // 3. Revenue This Month
+        const monthRevenueResult = await Order.aggregate([
+            { $match: { createdAt: { $gte: startOfMonth } } },
+            { $group: { _id: null, total: { $sum: '$price' } } }
+        ]);
+        const monthRevenue = monthRevenueResult[0]?.total || 0;
+
+        // 4. Revenue Last 7 Days (for Chart)
+        const last7Days = new Date(today);
+        last7Days.setDate(last7Days.getDate() - 6);
+        last7Days.setHours(0, 0, 0, 0);
+
+        const dailyRevenue = await Order.aggregate([
+            { $match: { createdAt: { $gte: last7Days } } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+                    total: { $sum: '$price' }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        res.json({
+            totalRevenue,
+            todayRevenue,
+            monthRevenue,
+            dailyRevenue
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

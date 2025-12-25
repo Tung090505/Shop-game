@@ -1,21 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { fetchProducts, adminFetchAllOrders, adminFetchAllUsers, adminFetchAllDeposits, fetchPrizes, fetchCategories } from '../api';
+import { fetchProducts, adminFetchAllOrders, adminFetchAllUsers, adminFetchAllDeposits, fetchPrizes, fetchCategories, adminFetchRevenueStats } from '../api';
 import { Link } from 'react-router-dom';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const AdminDashboard = () => {
-    const [stats, setStats] = useState({ products: 0, orders: 0, users: 0, deposits: 0, prizes: 0, categories: 0 });
+    const [stats, setStats] = useState({
+        products: 0,
+        orders: 0,
+        users: 0,
+        deposits: 0,
+        prizes: 0,
+        categories: 0
+    });
+    const [revenueStats, setRevenueStats] = useState({
+        totalRevenue: 0,
+        todayRevenue: 0,
+        monthRevenue: 0,
+        dailyRevenue: []
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const [prodRes, orderRes, userRes, depositRes, prizesRes, catRes] = await Promise.all([
+                const [prodRes, orderRes, userRes, depositRes, prizesRes, catRes, revRes] = await Promise.all([
                     fetchProducts(),
                     adminFetchAllOrders(),
                     adminFetchAllUsers(),
                     adminFetchAllDeposits(),
                     fetchPrizes(),
-                    fetchCategories()
+                    fetchCategories(),
+                    adminFetchRevenueStats()
                 ]);
 
                 setStats({
@@ -26,6 +41,11 @@ const AdminDashboard = () => {
                     prizes: prizesRes.data.length,
                     categories: catRes.data.length
                 });
+
+                if (revRes.data) {
+                    setRevenueStats(revRes.data);
+                }
+
             } catch (err) {
                 console.error(err);
             } finally {
@@ -35,14 +55,11 @@ const AdminDashboard = () => {
         fetchStats();
     }, []);
 
-    // ... (rest of loading state)
-
-    // Modification inside main grid
-    // ... stats mapping ...
-    //   { label: 'Yêu cầu nạp chờ duyệt', value: stats.deposits, to: '/admin/deposits', color: 'border-yellow-500/10 hover:border-yellow-500/40', text: 'text-yellow-500', icon: '💰' },
-    //   { label: 'Thư mục game', value: stats.categories, to: '/admin/categories', color: 'border-purple-500/10 hover:border-purple-500/40', text: 'text-purple-500', icon: '📁' }
-
-    // Modification inside center boxes
+    if (loading) return (
+        <div className="min-h-screen bg-primary flex items-center justify-center">
+            <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
+        </div>
+    );
 
     return (
         <div className="container mx-auto px-4 py-12 pb-32">
@@ -60,6 +77,87 @@ const AdminDashboard = () => {
                     <Link to="/" className="px-8 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black transition-all uppercase tracking-widest text-slate-500 hover:text-white flex items-center">
                         <span className="mr-2">🏠</span> Về trang chủ
                     </Link>
+                </div>
+            </div>
+
+            {/* Revenue Statistics Section */}
+            <div className="mb-12 px-4">
+                <h2 className="text-[10px] font-black text-slate-700 uppercase tracking-[0.5em] mb-8 flex items-center gap-6">
+                    <div className="h-px w-12 bg-slate-800"></div>
+                    Thống kê doanh thu
+                    <div className="h-px w-full bg-slate-800"></div>
+                </h2>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    {/* Revenue Cards */}
+                    <div className="bg-secondary/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                        <p className="text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] mb-2">Doanh thu hôm nay</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                            {revenueStats.todayRevenue.toLocaleString('vi-VN')} <span className="text-green-500 text-lg">đ</span>
+                        </p>
+                    </div>
+
+                    <div className="bg-secondary/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                        <p className="text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] mb-2">Doanh thu tháng này</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                            {revenueStats.monthRevenue.toLocaleString('vi-VN')} <span className="text-accent text-lg">đ</span>
+                        </p>
+                    </div>
+
+                    <div className="bg-secondary/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                        <p className="text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] mb-2">Tổng doanh thu toàn thời gian</p>
+                        <p className="text-4xl font-black text-white italic tracking-tighter">
+                            {revenueStats.totalRevenue.toLocaleString('vi-VN')} <span className="text-purple-500 text-lg">đ</span>
+                        </p>
+                    </div>
+                </div>
+
+                {/* Revenue Chart */}
+                <div className="bg-secondary/40 backdrop-blur-xl p-8 rounded-[3rem] border border-white/5 h-[400px]">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-white font-black uppercase italic tracking-wider text-sm">Biểu đồ doanh thu 7 ngày qua</h3>
+                    </div>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={revenueStats.dailyRevenue}>
+                            <defs>
+                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <XAxis
+                                dataKey="_id"
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748b', fontSize: 10, fontWeight: 900 }}
+                                dy={10}
+                            />
+                            <YAxis
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ fill: '#64748b', fontSize: 10, fontWeight: 900 }}
+                                tickFormatter={(value) => `${value / 1000}k`}
+                            />
+                            <Tooltip
+                                contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                itemStyle={{ color: '#fff', fontWeight: 900, textTransform: 'uppercase', fontSize: '12px' }}
+                                labelStyle={{ display: 'none' }}
+                                formatter={(value) => [`${value.toLocaleString()}đ`, 'DOANH THU']}
+                            />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} opacity={0.3} />
+                            <Area
+                                type="monotone"
+                                dataKey="total"
+                                stroke="#f43f5e"
+                                strokeWidth={4}
+                                fillOpacity={1}
+                                fill="url(#colorRevenue)"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
 
