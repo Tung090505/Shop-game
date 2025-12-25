@@ -42,6 +42,8 @@ export default async function handler(req, res) {
         return res.status(200).json({ message: 'Email đã được gửi thành công qua Vercel!' });
     } catch (error) {
         console.error('Vercel Email Error:', error);
-        return res.status(500).json({ message: `Lỗi gửi mail từ Vercel: ${error.message}` });
+        // Debug: Show which user tried to login
+        const usingUser = process.env.SMTP_USER || "Unknown";
+        return res.status(500).json({ message: `Lỗi đăng nhập (${usingUser}): ${error.message}` });
     }
 }
