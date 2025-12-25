@@ -28,14 +28,13 @@ export default async function handler(req, res) {
             secure: true, // Use SSL
             secure: true, // Use SSL
             auth: {
-                // Hardcoded for debugging - WILL REMOVE LATER
-                user: "tungark1@gmail.com",
-                pass: "sojseoinhtwnxstt",
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '',
             },
         });
 
         await transporter.sendMail({
-            from: `"ShopNickTFT" <${process.env.SMTP_USER}>`,
+            from: `"Shop Game" <${process.env.SMTP_USER}>`,
             to: email,
             subject: subject,
             html: html,
