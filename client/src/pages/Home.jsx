@@ -57,12 +57,16 @@ const Home = () => {
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-center gap-6 justify-center lg:justify-start">
-                                <Link to="/categories" className="group relative bg-accent hover:bg-accent-hover text-white px-10 py-5 rounded-2xl font-black text-xl transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:shadow-[0_0_50px_rgba(168,85,247,0.5)] w-full sm:w-auto text-center uppercase italic tracking-widest overflow-hidden">
-                                    <span className="relative z-10">MUA ACC NGAY</span>
+                                <Link to="/categories" className="group relative bg-[#6366f1] hover:bg-[#5558e6] text-white px-10 py-5 rounded-2xl font-black text-xl transition-all duration-300 shadow-[0_0_30px_rgba(99,102,241,0.4)] hover:shadow-[0_0_50px_rgba(99,102,241,0.6)] w-full sm:w-auto text-center uppercase italic tracking-widest overflow-hidden hover:-translate-y-1">
+                                    <span className="relative z-10 flex items-center gap-3 justify-center">
+                                        <span>🎮</span> MUA ACC NGAY
+                                    </span>
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                                 </Link>
-                                <Link to="/topup" className="bg-white/5 hover:bg-white/10 text-white px-10 py-5 rounded-2xl font-black text-xl transition border border-white/10 w-full sm:w-auto text-center backdrop-blur-md uppercase italic tracking-widest">
-                                    NẠP TIỀN
+                                <Link to="/topup" className="group relative bg-[#ff4d15] hover:bg-[#ff3d00] text-white px-10 py-5 rounded-2xl font-black text-xl transition-all duration-300 shadow-[0_0_30px_rgba(255,77,21,0.3)] hover:shadow-[0_0_50px_rgba(255,77,21,0.5)] w-full sm:w-auto text-center uppercase italic tracking-widest hover:-translate-y-1">
+                                    <span className="flex items-center gap-3 justify-center">
+                                        <span>💎</span> NẠP TIỀN
+                                    </span>
                                 </Link>
                             </div>
 
