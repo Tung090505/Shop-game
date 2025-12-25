@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import api from '../api/axios'; // Đảm bảo import đúng axios instance có interceptor
+import React, { useState, useEffect, useContext } from 'react';
+import api from '../api/config';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
 
 const AdminSettings = () => {
     const [settings, setSettings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { token } = useAuth();
+    const { user } = useContext(AuthContext);
 
     // Mapping key hiển thị cho đẹp
     const SETTING_LABELS = {
