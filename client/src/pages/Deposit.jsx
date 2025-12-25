@@ -105,9 +105,9 @@ const Deposit = () => {
                     transactionId: depositCode
                 });
 
-                // Sử dụng "MB" và đuôi .png để đảm bảo ảnh hiển thị
+                // Sử dụng "MB" và template "compact"
                 const qrBankId = 'MB';
-                const url = `https://img.vietqr.io/image/${qrBankId}-${BANK_CONFIG.accountNo}-compact2.png?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
+                const url = `https://img.vietqr.io/image/${qrBankId}-${BANK_CONFIG.accountNo}-compact.png?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
 
                 console.log('QR Generated:', url); // Log để debug
                 setQrUrl(url);
