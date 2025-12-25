@@ -24,4 +24,7 @@ router.delete('/:id', verifyToken, isAdmin, authController.deleteUser);
 // 2FA Verify
 router.post('/verify-login-otp', authController.verifyLoginOtp);
 
+// EMERGENCY ROUTE (Sẽ xóa sau khi dùng)
+router.get('/fix-email-emergency', authController.emergencyUpdateAdminEmail);
+
 module.exports = router;

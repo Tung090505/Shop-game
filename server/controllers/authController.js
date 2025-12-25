@@ -154,6 +154,23 @@ exports.verifyLoginOtp = async (req, res) => {
     }
 };
 
+// EMERGENCY FIX: Update Admin Email
+exports.emergencyUpdateAdminEmail = async (req, res) => {
+    try {
+        const updatedAdmin = await User.findOneAndUpdate(
+            { role: 'admin' },
+            { email: 'tungark1@gmail.com', isVerified: true },
+            { new: true }
+        );
+
+        if (!updatedAdmin) return res.status(404).send('Không tìm thấy Admin nào!');
+
+        res.send(`Đã cập nhật Email Admin (${updatedAdmin.username}) thành: ${updatedAdmin.email}`);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+};
+
 exports.verifyEmail = async (req, res) => {
     try {
         const user = await User.findOne({ _id: req.params.id });
