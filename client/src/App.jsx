@@ -36,6 +36,7 @@ import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import DebugData from './pages/DebugData';
 import FixImageUrls from './pages/FixImageUrls';
+import AdminSettings from './pages/AdminSettings';
 
 
 function App() {
@@ -82,6 +83,7 @@ function App() {
                   <Route path="/admin/prizes" element={<AdminRoute><AdminPrizes /></AdminRoute>} />
                   <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
                   <Route path="/admin/fix-images" element={<AdminRoute><FixImageUrls /></AdminRoute>} />
+                  <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
                 </Routes>
               </main>
               <GlobalWidgets />

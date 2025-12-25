@@ -4,6 +4,7 @@ const Transaction = require('../models/Transaction');
 const axios = require('axios');
 const md5 = require('md5');
 const cardConfig = require('../config/cardApi');
+const { getConfig } = require('./settingController'); // Helper để lấy config động
 
 exports.submitDeposit = async (req, res) => {
     try {
@@ -16,12 +17,19 @@ exports.submitDeposit = async (req, res) => {
             const { type, serial, pin, declaredAmount } = cardDetails;
             const requestId = `CARD_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
 
-            // Tạo chữ ký theo yêu cầu đối tác: md5(partner_key + code + serial)
-            // Lưu ý: Đối tác thường gọi mã thẻ là 'code' hoặc 'pin'
-            const sign = md5(cardConfig.PARTNER_KEY + pin + serial);
+            // Lấy config động từ DB
+            const partnerId = await getConfig('GACHTHE1S_PARTNER_ID');
+            const partnerKey = await getConfig('GACHTHE1S_PARTNER_KEY');
+
+            if (!partnerId || !partnerKey) {
+                return res.status(500).json({ message: 'Hệ thống nạp thẻ chưa được cấu hình. Vui lòng liên hệ Admin.' });
+            }
+
+            // Tạo chữ ký: md5(partner_key + code + serial)
+            const sign = md5(partnerKey + pin + serial);
 
             const apiData = {
-                partner_id: cardConfig.PARTNER_ID,
+                partner_id: partnerId,
                 telco: type,
                 code: pin,
                 serial: serial,

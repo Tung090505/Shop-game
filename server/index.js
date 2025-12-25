@@ -46,7 +46,10 @@ app.use('/api/', limiter);
 
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB Connected'))
+    .then(() => {
+        console.log('MongoDB Connected');
+        initSettings();
+    })
     .catch(err => console.log(err));
 
 // Routes
@@ -59,6 +62,8 @@ const webhookRoute = require('./routes/webhooks');
 const uploadRoute = require('./routes/upload');
 const categoryRoute = require('./routes/categories');
 const maintenanceRoute = require('./routes/maintenance');
+const settingRoute = require('./routes/settings');
+const { initSettings } = require('./controllers/settingController');
 
 app.use('/api/user', authRoute);
 app.use('/api/products', productRoute);
@@ -69,6 +74,7 @@ app.use('/api/webhooks', webhookRoute);
 app.use('/api/upload', uploadRoute);
 app.use('/api/categories', categoryRoute);
 app.use('/api/maintenance', maintenanceRoute);
+app.use('/api/settings', settingRoute);
 
 app.get('/', (req, res) => {
     res.send('Shop Game API is running');

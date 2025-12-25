@@ -1,0 +1,75 @@
+const Setting = require('../models/Setting');
+
+// Helper function để lấy config từ DB hoặc ENV (Sử dụng nội bộ server)
+exports.getConfig = async (key) => {
+    try {
+        const setting = await Setting.findOne({ key });
+        if (setting && setting.value) {
+            return setting.value;
+        }
+    } catch (error) {
+        console.error(`Error fetching setting ${key}:`, error);
+    }
+    // Fallback về environment variable
+    return process.env[key];
+};
+
+// API: Lấy toàn bộ settings (Chỉ dành cho Admin)
+exports.getAllSettings = async (req, res) => {
+    try {
+        const settings = await Setting.find({});
+
+        // Map về object { key: value } cho dễ dùng ở frontend
+        // Tuy nhiên, trả về array full info sẽ tốt hơn cho việc edit
+        res.json(settings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// API: Cập nhật hoặc tạo mới setting
+exports.updateSetting = async (req, res) => {
+    const { key, value, description, group, isPublic } = req.body;
+
+    try {
+        let setting = await Setting.findOne({ key });
+        if (setting) {
+            setting.value = value;
+            if (description) setting.description = description;
+            if (group) setting.group = group;
+            if (isPublic !== undefined) setting.isPublic = isPublic;
+            await setting.save();
+        } else {
+            setting = new Setting({
+                key,
+                value,
+                description,
+                group,
+                isPublic
+            });
+            await setting.save();
+        }
+        res.json(setting);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// API: Initialize Default Settings (Chạy 1 lần để seed data nếu chưa có)
+exports.initSettings = async () => {
+    const defaults = [
+        { key: 'GACHTHE1S_PARTNER_ID', value: process.env.GACHTHE1S_PARTNER_ID || '', group: 'payment', description: 'Partner ID từ Gachthe1s.com' },
+        { key: 'GACHTHE1S_PARTNER_KEY', value: process.env.GACHTHE1S_PARTNER_KEY || '', group: 'payment', description: 'Partner Key từ Gachthe1s.com' },
+        { key: 'ADMIN_BANK_NAME', value: 'MB BANK', group: 'banking', description: 'Tên ngân hàng nhận tiền' },
+        { key: 'ADMIN_BANK_ACCOUNT', value: '0869024105', group: 'banking', description: 'Số tài khoản nhận tiền' },
+        { key: 'ADMIN_BANK_ACCOUNT_NAME', value: 'PHAM THANH TUNG', group: 'banking', description: 'Tên chủ tài khoản' }
+    ];
+
+    for (const def of defaults) {
+        const exists = await Setting.findOne({ key: def.key });
+        if (!exists && def.value) {
+            await Setting.create(def);
+            console.log(`Initialized setting: ${def.key}`);
+        }
+    }
+};

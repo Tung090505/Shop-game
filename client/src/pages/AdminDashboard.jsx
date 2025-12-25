@@ -113,6 +113,13 @@ const AdminDashboard = () => {
                     <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Cộng tiền cho khách, xóa tài khoản <br /> và quản lý số dư hệ thống.</p>
                 </Link>
 
+                {/* System Settings */}
+                <Link to="/admin/settings" className="bg-secondary/30 backdrop-blur-xl p-8 rounded-[3rem] border border-white/5 hover:border-pink-500/30 transition-all duration-500 group flex flex-col items-center text-center">
+                    <div className="w-20 h-20 bg-pink-500/10 rounded-[2rem] flex items-center justify-center text-3xl mb-6 group-hover:rotate-12 transition-transform duration-500">⚙️</div>
+                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Cấu hình Hệ thống</h3>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">Kết nối Gạch thẻ, Ngân hàng <br /> và cài đặt API Key.</p>
+                </Link>
+
                 {/* Lucky Wheel Management */}
                 <Link to="/admin/prizes" className="bg-secondary/30 backdrop-blur-xl p-8 rounded-[3rem] border border-white/5 hover:border-orange-500/30 transition-all duration-500 group flex flex-col items-center text-center">
                     <div className="w-20 h-20 bg-orange-500/10 rounded-[2rem] flex items-center justify-center text-3xl mb-6 group-hover:scale-110 transition-transform duration-500 animate-spin-slow">🎡</div>

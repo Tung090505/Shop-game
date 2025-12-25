@@ -1,0 +1,9 @@
+const router = require('express').Router();
+const settingController = require('../controllers/settingController');
+const { verifyToken, isAdmin } = require('../middleware/auth');
+
+// Chỉ Admin mới được xem và sửa settings
+router.get('/', verifyToken, isAdmin, settingController.getAllSettings);
+router.post('/', verifyToken, isAdmin, settingController.updateSetting);
+
+module.exports = router;
