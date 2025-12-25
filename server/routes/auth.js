@@ -21,4 +21,7 @@ router.get('/all-transactions', verifyToken, isAdmin, authController.getAllTrans
 router.put('/update-balance/:id', verifyToken, isAdmin, authController.updateUserBalance);
 router.delete('/:id', verifyToken, isAdmin, authController.deleteUser);
 
+// 2FA Verify
+router.post('/verify-login-otp', authController.verifyLoginOtp);
+
 module.exports = router;

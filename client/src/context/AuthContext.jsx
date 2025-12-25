@@ -25,6 +25,21 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         const { data } = await api.login({ username, password });
+
+        // Nếu cần OTP (Admin) -> Return data để Frontend xử lý, KHÔNG set token
+        if (data.requireOtp) {
+            return data;
+        }
+
+        // Logic cũ (User thường)
+        localStorage.setItem('token', data.token);
+        setUser(data.user);
+        return data;
+    };
+
+    const verifyLoginOtp = async (userId, otp) => {
+        // API này trả về Token nếu đúng
+        const { data } = await api.verifyLoginOtp({ userId, otp });
         localStorage.setItem('token', data.token);
         setUser(data.user);
         return data;
@@ -49,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, loading, setUser, fetchProfile }}>
+        <AuthContext.Provider value={{ user, login, register, logout, loading, setUser, fetchProfile, verifyLoginOtp }}>
             {children}
         </AuthContext.Provider>
     );

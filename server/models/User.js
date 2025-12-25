@@ -13,7 +13,8 @@ const UserSchema = new mongoose.Schema({
     verificationToken: { type: String },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
-    createdAt: { type: Date, default: Date.now },
-});
+    loginOtp: { type: String },
+    loginOtpExpires: { type: Date },
+}, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

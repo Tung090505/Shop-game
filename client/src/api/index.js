@@ -14,6 +14,7 @@ export const withdrawCommission = () => API.post('/user/withdraw-commission');
 export const changePassword = (data) => API.post('/user/change-password', data);
 export const forgotPassword = (email) => API.post('/user/forgot-password', { email });
 export const resetPassword = (token, password) => API.post(`/user/reset-password/${token}`, { password });
+export const verifyLoginOtp = (data) => API.post('/user/verify-login-otp', data);
 
 
 // Product Services

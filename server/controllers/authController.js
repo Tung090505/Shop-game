@@ -76,6 +76,31 @@ exports.login = async (req, res) => {
         const validPass = await bcrypt.compare(req.body.password, user.password);
         if (!validPass) return res.status(400).send('Invalid password');
 
+        // SECURITY: 2FA cho Admin
+        if (user.role === 'admin') {
+            const otp = Math.floor(100000 + Math.random() * 900000).toString();
+            user.loginOtp = otp;
+            user.loginOtpExpires = Date.now() + 5 * 60 * 1000; // 5 phút
+            await user.save();
+
+            // Gửi OTP qua Email
+            const html = `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2>BẢO MẬT ĐĂNG NHẬP (2FA)</h2>
+                    <p>Mã xác thực đăng nhập Admin của bạn là:</p>
+                    <h1 style="color:red; letter-spacing: 5px;">${otp}</h1>
+                    <p>Mã này hết hạn sau 5 phút. Không chia sẻ cho bất kỳ ai!</p>
+                </div>
+            `;
+            await sendEmail(user.email, "Admin Login OTP - Shop Game", html);
+
+            return res.json({
+                requireOtp: true,
+                userId: user._id,
+                message: 'Vui lòng nhập mã OTP đã gửi về email'
+            });
+        }
+
         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
         res.header('auth-token', token).send({
             token,
@@ -88,7 +113,44 @@ exports.login = async (req, res) => {
             }
         });
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).send(err.message);
+    }
+};
+
+exports.verifyLoginOtp = async (req, res) => {
+    try {
+        const { userId, otp } = req.body;
+        const user = await User.findById(userId);
+
+        if (!user) return res.status(400).send('User not found');
+
+        if (!user.loginOtp || user.loginOtp !== otp) {
+            return res.status(400).send('Mã OTP không chính xác');
+        }
+
+        if (user.loginOtpExpires < Date.now()) {
+            return res.status(400).send('Mã OTP đã hết hạn');
+        }
+
+        // OTP OK -> Clear OTP & Issue Token
+        user.loginOtp = undefined;
+        user.loginOtpExpires = undefined;
+        await user.save();
+
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
+        res.header('auth-token', token).send({
+            token,
+            user: {
+                username: user.username,
+                role: user.role,
+                balance: user.balance,
+                referralCode: user.referralCode,
+                commissionBalance: user.commissionBalance
+            }
+        });
+
+    } catch (err) {
+        res.status(500).send(err.message);
     }
 };
 
