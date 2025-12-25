@@ -16,6 +16,26 @@ const Deposit = () => {
     const [qrUrl, setQrUrl] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [bankConfig, setBankConfig] = useState(null);
+    const [timeLeft, setTimeLeft] = useState(0);
+
+    // Countdown logic
+    useEffect(() => {
+        let timer;
+        if (isSubmitted && timeLeft > 0) {
+            timer = setInterval(() => {
+                setTimeLeft((prev) => prev - 1);
+            }, 1000);
+        } else if (timeLeft === 0 && isSubmitted) {
+            setQrUrl(''); // Expire QR
+        }
+        return () => clearInterval(timer);
+    }, [isSubmitted, timeLeft]);
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    };
 
     // State cho thẻ cào
     const [cardType, setCardType] = useState('VIETTEL');
@@ -114,6 +134,7 @@ const Deposit = () => {
 
                 setQrUrl(url);
                 setIsSubmitted(true);
+                setTimeLeft(180); // 3 minutes
                 toast.success('Đã tạo yêu cầu! Vui lòng quét mã QR để chuyển khoản.');
 
             } catch (err) {
@@ -158,6 +179,7 @@ const Deposit = () => {
         setIsSubmitted(false);
         setAmount('');
         setQrUrl('');
+        setTimeLeft(0);
         setDepositCode(`NAP${Math.floor(100000 + Math.random() * 900000)}`);
     };
 
@@ -409,7 +431,23 @@ const Deposit = () => {
                                     </h3>
                                     <div className="bg-white p-5 rounded-3xl shadow-[0px_0px_30px_rgba(99,102,241,0.2)]">
                                         {isSubmitted && qrUrl ? (
-                                            <img src={qrUrl} alt="QR Code" className="w-64 h-64 mx-auto rounded-xl animate-in zoom-in-95 duration-500" />
+                                            <div className="relative">
+                                                <img src={qrUrl} alt="QR Code" className="w-64 h-64 mx-auto rounded-xl animate-in zoom-in-95 duration-500" />
+                                                <div className="mt-4 flex flex-col items-center">
+                                                    <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">THỜI GIAN CÒN LẠI</span>
+                                                    <span className={`text-2xl font-black italic tracking-widest ${timeLeft < 60 ? 'text-red-500 animate-pulse' : 'text-slate-900'}`}>
+                                                        {formatTime(timeLeft)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ) : isSubmitted && timeLeft === 0 ? (
+                                            <div className="w-64 h-64 flex flex-col items-center justify-center text-slate-300">
+                                                <span className="text-5xl mb-4 grayscale">⚠️</span>
+                                                <p className="font-black uppercase text-[10px] tracking-widest leading-loose text-red-500">MÃ QR ĐÃ HẾT HẠN</p>
+                                                <button onClick={handleReset} className="mt-4 px-4 py-2 bg-slate-100 rounded-lg text-xs font-bold uppercase hover:bg-slate-200 text-slate-900 transition">
+                                                    TẠO MÃ MỚI
+                                                </button>
+                                            </div>
                                         ) : (
                                             <div className="w-64 h-64 flex flex-col items-center justify-center text-slate-300">
                                                 <span className="text-5xl mb-4 group-hover:scale-110 transition duration-500">💰</span>

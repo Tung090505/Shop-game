@@ -11,6 +11,7 @@ const AdminProducts = () => {
     const [categories, setCategories] = useState([]);
     const [selectedParentCategory, setSelectedParentCategory] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(''); // Filter by category
+    const [searchTerm, setSearchTerm] = useState(''); // Search filter
     const [formData, setFormData] = useState({
         title: '',
         category: '',
@@ -145,10 +146,22 @@ const AdminProducts = () => {
         </div>
     );
 
-    // Filter products by selected category
-    const filteredProducts = selectedCategory
-        ? products.filter(p => p.category?.toLowerCase().trim() === selectedCategory.toLowerCase().trim())
-        : products;
+    // Filter products by selected category and search term
+    const filteredProducts = products.filter(p => {
+        const matchesCategory = selectedCategory
+            ? p.category?.toLowerCase().trim() === selectedCategory.toLowerCase().trim()
+            : true;
+
+        const term = searchTerm.toLowerCase();
+        const matchesSearch =
+            p.title?.toLowerCase().includes(term) ||
+            p._id?.toLowerCase().includes(term) ||
+            p.category?.toLowerCase().includes(term) ||
+            p.attributes?.Rank?.toLowerCase().includes(term) ||
+            p.price?.toString().includes(term);
+
+        return matchesCategory && matchesSearch;
+    });
 
     // Group products by category for the sidebar
     const productsByCategory = products.reduce((acc, product) => {
@@ -218,6 +231,22 @@ const AdminProducts = () => {
                 >
                     <span className="text-2xl mr-3 group-hover:rotate-90 transition-transform duration-500">+</span> ĐĂNG ACC MỚI
                 </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-8">
+                <div className="relative w-full">
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm sản phẩm (Tên, ID, Rank, Giá...)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-[#121927] border border-slate-700 rounded-2xl py-4 pl-12 pr-6 text-white font-bold placeholder:text-slate-600 focus:border-accent focus:ring-1 focus:ring-accent transition-all outline-none"
+                    />
+                    <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
             </div>
 
             <div className="bg-secondary/40 backdrop-blur-xl rounded-[3.5rem] border border-white/5 overflow-hidden shadow-2xl">

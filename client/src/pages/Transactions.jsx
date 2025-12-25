@@ -7,6 +7,7 @@ const Transactions = () => {
     const { user } = useContext(AuthContext);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         const getTransactions = async () => {
@@ -28,6 +29,16 @@ const Transactions = () => {
         </div>
     );
 
+    const filteredTransactions = transactions.filter(tx => {
+        const term = searchTerm.toLowerCase();
+        return (
+            tx._id?.toLowerCase().includes(term) ||
+            tx.type?.toLowerCase().includes(term) ||
+            tx.description?.toLowerCase().includes(term) ||
+            tx.amount?.toString().includes(term)
+        );
+    });
+
     return (
         <div className="min-h-screen bg-primary py-24 pb-40">
             <div className="container mx-auto px-4 max-w-6xl">
@@ -36,6 +47,22 @@ const Transactions = () => {
                         Biến động <span className="text-accent">Số dư</span>
                     </h1>
                     <p className="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px]">Minh bạch • Rõ ràng • Chi tiết 24/7</p>
+                </div>
+
+                {/* Search Bar */}
+                <div className="mb-8">
+                    <div className="relative max-w-md">
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm giao dịch (Mã, Loại, Nội dung, Số tiền...)"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-[#121927] border border-slate-700 rounded-2xl py-4 pl-12 pr-6 text-white font-bold placeholder:text-slate-600 focus:border-accent focus:ring-1 focus:ring-accent transition-all outline-none"
+                        />
+                        <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
                 </div>
 
                 <div className="bg-secondary/40 backdrop-blur-xl rounded-[3.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
@@ -53,7 +80,7 @@ const Transactions = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5 text-sm font-medium">
-                                {transactions.length > 0 ? transactions.map((tx) => (
+                                {filteredTransactions.length > 0 ? filteredTransactions.map((tx) => (
                                     <tr key={tx._id} className="hover:bg-white/[0.02] transition group">
                                         <td className="px-8 py-6 text-slate-500 text-xs font-bold uppercase">
                                             {format(new Date(tx.createdAt), 'dd/MM/yyyy • HH:mm')}

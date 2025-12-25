@@ -9,6 +9,7 @@ const AdminUsers = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [newBalance, setNewBalance] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const loadUsers = async () => {
         try {
@@ -61,6 +62,16 @@ const AdminUsers = () => {
         </div>
     );
 
+    const filteredUsers = users.filter(user => {
+        const term = searchTerm.toLowerCase();
+        return (
+            user.username?.toLowerCase().includes(term) ||
+            user.email?.toLowerCase().includes(term) ||
+            user.role?.toLowerCase().includes(term) ||
+            user.balance?.toString().includes(term)
+        );
+    });
+
     return (
         <div className="container mx-auto px-4 py-12 pb-32">
             <div className="mb-12">
@@ -68,6 +79,22 @@ const AdminUsers = () => {
                     Quản lý <span className="text-green-500">Thành viên</span>
                 </h1>
                 <p className="text-slate-500 mt-2 font-medium uppercase tracking-widest text-xs">Phân quyền và quản lý tài chính người dùng</p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-8">
+                <div className="relative max-w-md">
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm thành viên (Username, Email, Số dư...)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-[#121927] border border-slate-700 rounded-2xl py-4 pl-12 pr-6 text-white font-bold placeholder:text-slate-600 focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all outline-none"
+                    />
+                    <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
             </div>
 
             <div className="bg-secondary/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
@@ -83,7 +110,7 @@ const AdminUsers = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 text-sm font-medium">
-                            {users.map((u) => (
+                            {filteredUsers.map((u) => (
                                 <tr key={u._id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-10 py-8">
                                         <div className="flex items-center space-x-5">

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 const AdminOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const loadOrders = async () => {
         try {
@@ -23,6 +24,17 @@ const AdminOrders = () => {
 
     if (loading) return <div className="text-center py-20 text-white font-bold animate-pulse">ĐANG TẢI DỮ LIỆU...</div>;
 
+    const filteredOrders = orders.filter(order => {
+        const term = searchTerm.toLowerCase();
+        return (
+            order._id?.toLowerCase().includes(term) ||
+            order.user?.username?.toLowerCase().includes(term) ||
+            order.user?.email?.toLowerCase().includes(term) ||
+            order.product?.title?.toLowerCase().includes(term) ||
+            order.price?.toString().includes(term)
+        );
+    });
+
     return (
         <div className="container mx-auto px-4 py-12">
             <div className="mb-12">
@@ -30,6 +42,22 @@ const AdminOrders = () => {
                     Lịch sử <span className="text-blue-500">Giao dịch</span>
                 </h1>
                 <p className="text-slate-500 mt-2 font-medium uppercase tracking-widest text-xs">Theo dõi mọi đơn hàng đã bán ra</p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="mb-8">
+                <div className="relative max-w-md">
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm đơn hàng (Mã, User, Sản phẩm...)"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-[#121927] border border-slate-700 rounded-2xl py-4 pl-12 pr-6 text-white font-bold placeholder:text-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none"
+                    />
+                    <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
             </div>
 
             <div className="bg-secondary/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl">
@@ -45,7 +73,7 @@ const AdminOrders = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 text-sm font-medium">
-                            {orders.map((order) => (
+                            {filteredOrders.map((order) => (
                                 <tr key={order._id} className="hover:bg-white/[0.02] transition">
                                     <td className="px-8 py-6 font-mono text-xs text-slate-500">#{order._id.slice(-8).toUpperCase()}</td>
                                     <td className="px-8 py-6">
