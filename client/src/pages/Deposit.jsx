@@ -105,7 +105,7 @@ const Deposit = () => {
                     transactionId: depositCode
                 });
 
-                const url = `https://img.vietqr.io/image/MB-${BANK_CONFIG.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
+                const url = `https://img.vietqr.io/image/${BANK_CONFIG.bankId}-${BANK_CONFIG.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
                 setQrUrl(url);
                 setIsSubmitted(true);
                 toast.success('Đã tạo yêu cầu! Vui lòng quét mã QR để chuyển khoản.');
