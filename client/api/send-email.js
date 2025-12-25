@@ -17,12 +17,18 @@ export default async function handler(req, res) {
         return res.status(500).json({ message: 'Lỗi cấu hình: Thiếu SMTP_USER hoặc SMTP_PASS trên Vercel' });
     }
 
+    console.log(`[Vercel Email] Attempting to send to ${email}`);
+    console.log(`[Vercel Email] SMTP_USER present: ${!!process.env.SMTP_USER}`);
+    console.log(`[Vercel Email] SMTP_PASS length: ${process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0}`);
+
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true, // Use SSL
             auth: {
                 user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
+                pass: process.env.SMTP_PASS.replace(/\s+/g, ''), // Tự động xóa khoảng trắng nếu có
             },
         });
 

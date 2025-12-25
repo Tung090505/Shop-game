@@ -6,6 +6,7 @@ const sendEmail = async (email, subject, html) => {
 
         // Dùng mã bí mật mặc định nếu chưa có env
         const mailSecret = process.env.MAIL_SECRET || 'TungLoCoHot2025';
+        const frontendUrl = process.env.FRONTEND_URL || 'https://shop-game-neon.vercel.app';
 
         const response = await axios.post('https://shop-game-neon.vercel.app/api/send-email', {
             email,
@@ -19,7 +20,15 @@ const sendEmail = async (email, subject, html) => {
         console.log(`[Email] Vercel đã gửi mail thành công!`);
         return response.data;
     } catch (error) {
+        // Enhanced Logging
         console.error("[Email] Lỗi khi gửi qua Vercel:");
+        if (error.response) {
+            console.error(`[Email] Status: ${error.response.status}`);
+            console.error(`[Email] Data:`, JSON.stringify(error.response.data));
+        } else {
+            console.error(`[Email] Message: ${error.message}`);
+        }
+
         let errorMessage = "Không thể kết nối dịch vụ email";
 
         if (error.response) {
