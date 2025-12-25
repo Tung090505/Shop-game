@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const verifyToken = require('../middleware/auth');
+const { verifyToken, isAdmin } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 console.log('--- Auth Routes Loaded ---');
 
@@ -16,9 +16,9 @@ router.post('/reset-password/:token', authController.resetPassword);
 
 
 // Admin Routes
-router.get('/all-users', verifyToken, authController.getAllUsers);
-router.get('/all-transactions', verifyToken, authController.getAllTransactions);
-router.put('/update-balance/:id', verifyToken, authController.updateUserBalance);
-router.delete('/:id', verifyToken, authController.deleteUser);
+router.get('/all-users', verifyToken, isAdmin, authController.getAllUsers);
+router.get('/all-transactions', verifyToken, isAdmin, authController.getAllTransactions);
+router.put('/update-balance/:id', verifyToken, isAdmin, authController.updateUserBalance);
+router.delete('/:id', verifyToken, isAdmin, authController.deleteUser);
 
 module.exports = router;

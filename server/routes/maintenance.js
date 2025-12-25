@@ -1,6 +1,7 @@
 const express = require('express');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
+const { verifyToken, isAdmin } = require('../middleware/auth');
 const router = express.Router();
 
 // Hàm chuyển đổi URL localhost thành path tương đối
@@ -19,8 +20,8 @@ const fixImageUrl = (url) => {
     return url;
 };
 
-// API endpoint để fix tất cả image URLs
-router.post('/fix-image-urls', async (req, res) => {
+// API endpoint để fix tất cả image URLs (Admin Only)
+router.post('/fix-image-urls', verifyToken, isAdmin, async (req, res) => {
     try {
         const results = {
             categoriesFixed: 0,

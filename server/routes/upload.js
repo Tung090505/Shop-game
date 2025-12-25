@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
-const verifyToken = require('../middleware/auth');
+const { verifyToken, isAdmin } = require('../middleware/auth');
 
 // Storage configuration
 const storage = multer.diskStorage({
@@ -29,8 +29,7 @@ const upload = multer({
 });
 
 // Upload multiple images
-router.post('/', verifyToken, upload.array('images', 5), (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access Denied' });
+router.post('/', verifyToken, isAdmin, upload.array('images', 5), (req, res) => {
 
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({ message: 'Vui lòng chọn ít nhất một file' });

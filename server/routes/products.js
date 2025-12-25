@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Product = require('../models/Product');
 const Category = require('../models/Category');
-const verifyToken = require('../middleware/auth');
+const { verifyToken, isAdmin } = require('../middleware/auth');
 
 // GET ALL PRODUCTS (Public)
 router.get('/', async (req, res) => {
@@ -48,8 +48,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET ALL PRODUCTS (Admin - including credentials)
-router.get('/admin/all', verifyToken, async (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access Denied' });
+router.get('/admin/all', verifyToken, isAdmin, async (req, res) => {
     try {
         const products = await Product.find()
             .select('+credentials.username +credentials.password')
@@ -72,9 +71,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // CREATE PRODUCT (Admin only)
-router.post('/', verifyToken, async (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access Denied' });
-
+router.post('/', verifyToken, isAdmin, async (req, res) => {
     const product = new Product(req.body);
     try {
         const savedProduct = await product.save();
@@ -85,9 +82,7 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 // UPDATE PRODUCT (Admin only)
-router.put('/:id', verifyToken, async (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access Denied' });
-
+router.put('/:id', verifyToken, isAdmin, async (req, res) => {
     try {
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
@@ -101,8 +96,7 @@ router.put('/:id', verifyToken, async (req, res) => {
 });
 
 // DELETE PRODUCT (Admin only)
-router.delete('/:id', verifyToken, async (req, res) => {
-    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access Denied' });
+router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
 
     try {
         await Product.findByIdAndDelete(req.params.id);

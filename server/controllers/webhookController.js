@@ -110,6 +110,15 @@ exports.handleCardWebhook = async (req, res) => {
         console.log('--- CARD WEBHOOK RECEIVED ---');
         // Hỗ trợ cả POST (req.body) và GET (req.query)
         const data = Object.keys(req.body).length > 0 ? req.body : req.query;
+
+        // Bảo mật: Kiểm tra Secret Key từ URL (Chặn fake request)
+        // URL cấu hình: ...?secret=ShopGameBaoMat2025BaoMat2025Nsryon
+        const webhookSecret = req.query.secret;
+        if (webhookSecret !== 'ShopGameBaoMat2025BaoMat2025Nsryon') {
+            console.log('⚠ Webhook sai Secret Key:', webhookSecret);
+            return res.status(403).send('Forbidden: Invalid Secret Key');
+        }
+
         console.log(JSON.stringify(data, null, 2));
 
         const { status, amount, value, request_id, sign, message } = data;
