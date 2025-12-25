@@ -27,8 +27,9 @@ export default async function handler(req, res) {
             port: 465,
             secure: true, // Use SSL
             auth: {
-                user: "tungark1@gmail.com", // Force config
-                pass: "sojseoinhtwnxstt",   // Force config
+                user: process.env.SMTP_USER,
+                // SECURITY: Always load from Environment Variables
+                pass: process.env.SMTP_PASS ? process.env.SMTP_PASS.trim() : '',
             },
         });
 
