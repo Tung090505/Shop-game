@@ -15,6 +15,7 @@ const Deposit = () => {
     const [loading, setLoading] = useState(false);
     const [qrUrl, setQrUrl] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [bankConfig, setBankConfig] = useState(null);
 
     // State cho thẻ cào
     const [cardType, setCardType] = useState('VIETTEL');
@@ -31,54 +32,49 @@ const Deposit = () => {
 
     const CARD_AMOUNTS = ['10000', '20000', '30000', '50000', '100000', '200000', '300000', '500000', '1000000'];
 
-    const BANK_CONFIG = {
-        bankId: '970422',
-        accountNo: '0869024105',
-        accountName: 'PHAM THANH TUNG',
-    };
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await api.getSettingsPublic();
+                if (res.data) {
+                    setBankConfig({
+                        bankName: res.data.ADMIN_BANK_NAME || 'MB',
+                        accountNo: res.data.ADMIN_BANK_ACCOUNT || '0869024105',
+                        accountName: res.data.ADMIN_BANK_ACCOUNT_NAME || 'PHAM THANH TUNG'
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load bank settings", error);
+                // Fallback
+                setBankConfig({
+                    bankName: 'MB',
+                    accountNo: '0869024105',
+                    accountName: 'PHAM THANH TUNG'
+                });
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         const randomStr = Math.floor(100000 + Math.random() * 900000);
         setDepositCode(`NAP${randomStr}`);
     }, []);
 
-    // Listen for deposit approval notification
+    // Listen for deposit notification (omitted for brevity, unchanged)
     useEffect(() => {
         if (!socket) return;
-
         const handleDepositApproved = (data) => {
             console.log('💰 Deposit approved:', data);
-
-            // Show success notification
             toast.success(
                 `🎉 Nạp tiền thành công! +${data.amount.toLocaleString('vi-VN')}đ\nSố dư mới: ${data.newBalance.toLocaleString('vi-VN')}đ`,
-                {
-                    duration: 5000,
-                    style: {
-                        background: '#10b981',
-                        color: '#fff',
-                        fontWeight: 'bold',
-                        fontSize: '14px'
-                    }
-                }
+                { duration: 5000, style: { background: '#10b981', color: '#fff', fontWeight: 'bold', fontSize: '14px' } }
             );
-
-            // Update user balance in context
-            if (setUser && user) {
-                setUser({ ...user, balance: data.newBalance });
-            }
-
-            // Redirect to home after 2 seconds
-            setTimeout(() => {
-                navigate('/');
-            }, 2000);
+            if (setUser && user) setUser({ ...user, balance: data.newBalance });
+            setTimeout(() => navigate('/'), 2000);
         };
-
         socket.on('deposit_approved', handleDepositApproved);
-
-        return () => {
-            socket.off('deposit_approved', handleDepositApproved);
-        };
+        return () => socket.off('deposit_approved', handleDepositApproved);
     }, [socket, navigate, user, setUser]);
 
     const transferContent = depositCode;
@@ -105,7 +101,16 @@ const Deposit = () => {
                     transactionId: depositCode
                 });
 
-                const url = `https://img.vietqr.io/image/MB-${BANK_CONFIG.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(BANK_CONFIG.accountName)}`;
+                // Use dynamic bank config
+                const currentBank = bankConfig || {
+                    bankName: 'MB',
+                    accountNo: '0869024105',
+                    accountName: 'PHAM THANH TUNG'
+                };
+
+                // Construct VietQR URL
+                // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.jpg
+                const url = `https://img.vietqr.io/image/${currentBank.bankName}-${currentBank.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(currentBank.accountName)}`;
 
                 setQrUrl(url);
                 setIsSubmitted(true);
@@ -313,7 +318,7 @@ const Deposit = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top-4 duration-500">
                                                     <div className="bg-[#1a2333] p-6 rounded-3xl border border-white/5">
                                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] block mb-2">CHỦ TÀI KHOẢN</span>
-                                                        <span className="text-white font-black text-xl italic tracking-tight">{BANK_CONFIG.accountName}</span>
+                                                        <span className="text-white font-black text-xl italic tracking-tight">{bankConfig?.accountName || 'PHAM THANH TUNG'}</span>
                                                     </div>
                                                     <div className="bg-[#1a2333] p-6 rounded-3xl border border-white/5 group">
                                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-[2px] block mb-2">NỘI DUNG CHUYỂN KHOẢN</span>

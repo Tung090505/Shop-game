@@ -18,10 +18,22 @@ exports.getConfig = async (key) => {
 exports.getAllSettings = async (req, res) => {
     try {
         const settings = await Setting.find({});
-
-        // Map về object { key: value } cho dễ dùng ở frontend
-        // Tuy nhiên, trả về array full info sẽ tốt hơn cho việc edit
         res.json(settings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// API: Lấy settings công khai (Cho frontend)
+exports.getPublicSettings = async (req, res) => {
+    try {
+        const settings = await Setting.find({ isPublic: true });
+        // Chuyển về dạng object { key: value } cho frontend dễ dùng
+        const config = {};
+        settings.forEach(s => {
+            config[s.key] = s.value;
+        });
+        res.json(config);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -60,9 +72,9 @@ exports.initSettings = async () => {
     const defaults = [
         { key: 'GACHTHE1S_PARTNER_ID', value: process.env.GACHTHE1S_PARTNER_ID || '', group: 'payment', description: 'Partner ID từ Gachthe1s.com' },
         { key: 'GACHTHE1S_PARTNER_KEY', value: process.env.GACHTHE1S_PARTNER_KEY || '', group: 'payment', description: 'Partner Key từ Gachthe1s.com' },
-        { key: 'ADMIN_BANK_NAME', value: 'MB BANK', group: 'banking', description: 'Tên ngân hàng nhận tiền' },
-        { key: 'ADMIN_BANK_ACCOUNT', value: '0869024105', group: 'banking', description: 'Số tài khoản nhận tiền' },
-        { key: 'ADMIN_BANK_ACCOUNT_NAME', value: 'PHAM THANH TUNG', group: 'banking', description: 'Tên chủ tài khoản' }
+        { key: 'ADMIN_BANK_NAME', value: 'MB', group: 'banking', description: 'Tên ngân hàng (ShortName: MB, VCB...)', isPublic: true },
+        { key: 'ADMIN_BANK_ACCOUNT', value: '0869024105', group: 'banking', description: 'Số tài khoản nhận tiền', isPublic: true },
+        { key: 'ADMIN_BANK_ACCOUNT_NAME', value: 'PHAM THANH TUNG', group: 'banking', description: 'Tên chủ tài khoản', isPublic: true }
     ];
 
     for (const def of defaults) {
