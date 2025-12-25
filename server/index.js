@@ -55,6 +55,7 @@ const depositRoute = require('./routes/deposits');
 const webhookRoute = require('./routes/webhooks');
 const uploadRoute = require('./routes/upload');
 const categoryRoute = require('./routes/categories');
+const maintenanceRoute = require('./routes/maintenance');
 
 app.use('/api/user', authRoute);
 app.use('/api/products', productRoute);
@@ -64,6 +65,7 @@ app.use('/api/deposits', depositRoute);
 app.use('/api/webhooks', webhookRoute);
 app.use('/api/upload', uploadRoute);
 app.use('/api/categories', categoryRoute);
+app.use('/api/maintenance', maintenanceRoute);
 
 app.get('/', (req, res) => {
     res.send('Shop Game API is running');
