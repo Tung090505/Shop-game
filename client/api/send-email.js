@@ -26,16 +26,14 @@ export default async function handler(req, res) {
             host: "smtp.gmail.com",
             port: 465,
             secure: true, // Use SSL
-            secure: true, // Use SSL
             auth: {
-                user: process.env.SMTP_USER || "tungark1@gmail.com",
-                // FALLBACK: Use hardcoded password if Env var fails (For immediate launch stability)
-                pass: process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : "sojseoinhtwnxstt",
+                user: "tungark1@gmail.com", // Force config
+                pass: "sojseoinhtwnxstt",   // Force config
             },
         });
 
         await transporter.sendMail({
-            from: `"Shop Game" <${process.env.SMTP_USER}>`,
+            from: `"Shop Game" <tungark1@gmail.com>`,
             to: email,
             subject: subject,
             html: html,
