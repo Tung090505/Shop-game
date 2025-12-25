@@ -34,6 +34,7 @@ import Warranty from './pages/Warranty';
 import AdminRoute from './components/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
 import DebugData from './pages/DebugData';
+import FixImageUrls from './pages/FixImageUrls';
 
 
 function App() {
@@ -78,6 +79,7 @@ function App() {
                 <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
                 <Route path="/admin/prizes" element={<AdminRoute><AdminPrizes /></AdminRoute>} />
                 <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
+                <Route path="/admin/fix-images" element={<AdminRoute><FixImageUrls /></AdminRoute>} />
               </Routes>
             </main>
             <GlobalWidgets />
