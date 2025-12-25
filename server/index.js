@@ -24,6 +24,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Trust proxy - Required for Render.com and other reverse proxies
+app.set('trust proxy', 1);
+
 // Create uploads folder if it doesn't exist
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
