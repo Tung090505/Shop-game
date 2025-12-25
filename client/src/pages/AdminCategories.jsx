@@ -301,18 +301,28 @@ const AdminCategories = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Hình ảnh (Icon)</label>
-                                    <div className="relative h-14">
+                                    <div className="relative h-24 group/upload">
                                         <input
                                             type="file"
                                             onChange={handleImageUpload}
-                                            className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-20"
                                             accept="image/*"
                                         />
-                                        <div className="w-full h-full bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center text-[10px] font-black text-slate-500 uppercase italic tracking-widest transition-all hover:bg-white/10">
-                                            {isUploading ? 'Đang tải...' : formData.image ? 'Đã có ảnh (Click để đổi)' : 'Chọn ảnh icon'}
+                                        <div className="w-full h-full bg-white/5 border border-dashed border-white/20 rounded-2xl flex items-center justify-center text-[10px] font-black text-slate-500 uppercase italic tracking-widest transition-all hover:bg-white/10 overflow-hidden relative">
+                                            {isUploading ? (
+                                                'Đang tải...'
+                                            ) : formData.image ? (
+                                                <>
+                                                    <img src={getAssetUrl(formData.image)} alt="Preview" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover/upload:opacity-30 transition-opacity" />
+                                                    <span className="relative z-10 text-white drop-shadow-md">Đã có ảnh (Click đổi)</span>
+                                                </>
+
+                                            ) : (
+                                                'Chọn ảnh icon'
+                                            )}
                                         </div>
                                     </div>
-                                    {formData.image && <p className="text-[10px] text-accent font-bold truncate px-2">{formData.image}</p>}
+                                    {formData.image && <p className="text-[9px] text-slate-600 font-bold truncate px-2 mt-1">{formData.image}</p>}
                                 </div>
                             </div>
 
