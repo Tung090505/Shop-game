@@ -9,9 +9,11 @@ const AdminProducts = () => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [categories, setCategories] = useState([]);
+    const [selectedParentCategory, setSelectedParentCategory] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState(''); // Filter by category
     const [formData, setFormData] = useState({
         title: '',
-        category: 'TFT',
+        category: '',
         price: 0,
         oldPrice: 0,
         description: '',
@@ -53,6 +55,12 @@ const AdminProducts = () => {
 
     const handleEdit = (product) => {
         setEditingProduct(product);
+
+        // Tìm parent category của sản phẩm
+        const productCategory = categories.find(cat => cat.name === product.category);
+        const parentId = productCategory?.parent?._id || productCategory?.parent || '';
+        setSelectedParentCategory(String(parentId));
+
         setFormData({
             ...product,
             attributes: product.attributes || { Rank: '', Skins: '', Pet: '' },
@@ -78,11 +86,19 @@ const AdminProducts = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            // Trim whitespace from all string fields
+            const sanitizedData = {
+                ...formData,
+                title: formData.title?.trim(),
+                category: formData.category?.trim(),
+                description: formData.description?.trim()
+            };
+
             if (editingProduct) {
-                await adminUpdateProduct(editingProduct._id, formData);
+                await adminUpdateProduct(editingProduct._id, sanitizedData);
                 toast.success('Cập nhật thành công');
             } else {
-                await adminCreateProduct(formData);
+                await adminCreateProduct(sanitizedData);
                 toast.success('Đăng sản phẩm thành công');
             }
 
@@ -129,14 +145,56 @@ const AdminProducts = () => {
         </div>
     );
 
+    // Filter products by selected category
+    const filteredProducts = selectedCategory
+        ? products.filter(p => p.category?.toLowerCase().trim() === selectedCategory.toLowerCase().trim())
+        : products;
+
+    // Group products by category for the sidebar
+    const productsByCategory = products.reduce((acc, product) => {
+        const cat = product.category || 'Chưa phân loại';
+        if (!acc[cat]) acc[cat] = 0;
+        acc[cat]++;
+        return acc;
+    }, {});
+
     return (
         <div className="container mx-auto px-4 py-12 pb-32">
+            {/* Category Filter Tabs */}
+            <div className="mb-8 overflow-x-auto">
+                <div className="flex gap-3 pb-4">
+                    <button
+                        onClick={() => setSelectedCategory('')}
+                        className={`px-6 py-3 rounded-2xl font-black text-sm uppercase italic tracking-widest transition-all whitespace-nowrap ${selectedCategory === ''
+                            ? 'bg-accent text-white shadow-xl shadow-accent/20'
+                            : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                            }`}
+                    >
+                        📦 Tất cả ({products.length})
+                    </button>
+                    {Object.keys(productsByCategory).sort().map(cat => (
+                        <button
+                            key={cat}
+                            onClick={() => setSelectedCategory(cat)}
+                            className={`px-6 py-3 rounded-2xl font-black text-sm uppercase italic tracking-widest transition-all whitespace-nowrap ${selectedCategory === cat
+                                ? 'bg-accent text-white shadow-xl shadow-accent/20'
+                                : 'bg-white/5 text-slate-400 hover:bg-white/10'
+                                }`}
+                        >
+                            📁 {cat} ({productsByCategory[cat]})
+                        </button>
+                    ))}
+                </div>
+            </div>
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
                 <div>
                     <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter">
                         Quản lý <span className="text-accent">Sản phẩm</span>
                     </h1>
-                    <p className="text-slate-500 mt-2 font-medium uppercase tracking-widest text-xs">Phân phối tài khoản Game chuyên nghiệp</p>
+                    <p className="text-slate-500 mt-2 font-medium uppercase tracking-widest text-xs">
+                        {selectedCategory ? `Danh mục: ${selectedCategory}` : 'Phân phối tài khoản Game chuyên nghiệp'}
+                    </p>
                 </div>
                 <button
                     onClick={() => {
@@ -175,7 +233,7 @@ const AdminProducts = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 text-sm font-medium">
-                            {products.map((product) => (
+                            {filteredProducts.map((product) => (
                                 <tr key={product._id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-10 py-8">
                                         <div className="flex items-center space-x-6">
@@ -265,7 +323,7 @@ const AdminProducts = () => {
                                 {/* Left Side: Basic Info */}
                                 <div className="space-y-8">
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Tên tài khoản hiển thị</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Tên Sản Phẩm </label>
                                         <input
                                             type="text"
                                             value={formData.title}
@@ -277,35 +335,59 @@ const AdminProducts = () => {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-6">
+                                        {/* Parent Category (Game) */}
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Danh mục Game</label>
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Game chính</label>
+                                            <select
+                                                value={selectedParentCategory}
+                                                onChange={(e) => {
+                                                    setSelectedParentCategory(e.target.value);
+                                                    setFormData({ ...formData, category: '' }); // Reset subcategory
+                                                }}
+                                                className="w-full bg-slate-900 border border-white/10 rounded-3xl px-8 py-5 text-white font-black outline-none focus:border-accent transition appearance-none cursor-pointer"
+                                                style={{ colorScheme: 'dark' }}
+                                                required
+                                            >
+                                                <option value="">-- Chọn game --</option>
+                                                {categories
+                                                    .filter(cat => !cat.parent) // Chỉ hiển thị danh mục cha
+                                                    .map(cat => (
+                                                        <option key={cat._id} value={cat._id}>
+                                                            {cat.name}
+                                                        </option>
+                                                    ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Subcategory (Product Type) */}
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Danh mục con</label>
                                             <select
                                                 value={formData.category}
                                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                                 className="w-full bg-slate-900 border border-white/10 rounded-3xl px-8 py-5 text-white font-black outline-none focus:border-accent transition appearance-none cursor-pointer"
                                                 style={{ colorScheme: 'dark' }}
+                                                required
+                                                disabled={!selectedParentCategory}
                                             >
+                                                <option value="">-- Chọn loại --</option>
                                                 {categories
-                                                    .filter(cat => {
-                                                        // Chỉ hiện các danh mục "cuối":
-                                                        // 1. Là danh mục con (có parent)
-                                                        // 2. HOẶC là danh mục gốc nhưng chưa có bất kỳ danh mục con nào
-                                                        const hasChildren = categories.some(c => (c.parent?._id || c.parent) === cat._id);
-                                                        return cat.parent || !hasChildren;
-                                                    })
-                                                    .map(cat => {
-                                                        const parentName = cat.parent ? (categories.find(c => c._id === (cat.parent?._id || cat.parent))?.name) : null;
-                                                        return (
-                                                            <option key={cat._id} value={cat.name}>
-                                                                {parentName ? `${parentName} > ` : ''}{cat.name}
-                                                            </option>
-                                                        );
-                                                    })}
-                                                {categories.length === 0 && <option value="">Chưa có danh mục</option>}
+                                                    .filter(cat => String(cat.parent?._id || cat.parent || '') === String(selectedParentCategory))
+                                                    .map(cat => (
+                                                        <option key={cat._id} value={cat.name}>
+                                                            {cat.name}
+                                                        </option>
+                                                    ))}
+                                                {selectedParentCategory && categories.filter(cat => String(cat.parent?._id || cat.parent || '') === String(selectedParentCategory)).length === 0 && (
+                                                    <option value="" disabled>Chưa có danh mục con</option>
+                                                )}
                                             </select>
                                         </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Trạng thái bán</label>
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Trạng thái</label>
                                             <select
                                                 value={formData.status}
                                                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -313,7 +395,7 @@ const AdminProducts = () => {
                                                 style={{ colorScheme: 'dark' }}
                                             >
                                                 <option value="available">Sẵn sàng bán</option>
-                                                <option value="sold">Đã bán mất</option>
+                                                <option value="sold">Đã bán</option>
                                             </select>
                                         </div>
                                     </div>
@@ -330,7 +412,7 @@ const AdminProducts = () => {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Mô tả ngắn gọn</label>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2">Mô tả sản phẩm</label>
                                         <textarea
                                             value={formData.description}
                                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -472,11 +554,11 @@ const AdminProducts = () => {
                                         <div className="space-y-6">
                                             <div className="space-y-2">
                                                 <span className="text-[9px] font-black text-slate-500 uppercase ml-2">Tên đăng nhập (Username)</span>
-                                                <input type="text" placeholder="Riêng tư - Chỉ khách thấy" value={formData.credentials.username} onChange={(e) => setFormData({ ...formData, credentials: { ...formData.credentials, username: e.target.value } })} className="w-full bg-[#0f172a]/50 border border-white/10 rounded-2xl px-8 py-4 text-white font-black outline-none focus:border-accent transition placeholder:text-slate-700" required />
+                                                <input type="text" placeholder="Tài Khoản.." value={formData.credentials.username} onChange={(e) => setFormData({ ...formData, credentials: { ...formData.credentials, username: e.target.value } })} className="w-full bg-[#0f172a]/50 border border-white/10 rounded-2xl px-8 py-4 text-white font-black outline-none focus:border-accent transition placeholder:text-slate-700" required />
                                             </div>
                                             <div className="space-y-2">
                                                 <span className="text-[9px] font-black text-slate-500 uppercase ml-2">Mật khẩu (Password)</span>
-                                                <input type="text" placeholder="Mật khẩu cực mật..." value={formData.credentials.password} onChange={(e) => setFormData({ ...formData, credentials: { ...formData.credentials, password: e.target.value } })} className="w-full bg-[#0f172a]/50 border border-white/10 rounded-2xl px-8 py-4 text-accent font-black outline-none focus:border-accent transition placeholder:text-slate-700" required />
+                                                <input type="text" placeholder="Mật khẩu.." value={formData.credentials.password} onChange={(e) => setFormData({ ...formData, credentials: { ...formData.credentials, password: e.target.value } })} className="w-full bg-[#0f172a]/50 border border-white/10 rounded-2xl px-8 py-4 text-accent font-black outline-none focus:border-accent transition placeholder:text-slate-700" required />
                                             </div>
                                             <p className="text-[9px] text-accent/50 font-black uppercase tracking-widest text-center mt-4">⚠️ Thông tin này sẽ được gửi ngay cho khách sau khi thanh toán</p>
                                         </div>
@@ -486,7 +568,7 @@ const AdminProducts = () => {
 
                             <div className="pt-12 border-t border-white/5">
                                 <button type="submit" className="w-full bg-accent hover:bg-accent-hover text-white font-black py-8 rounded-[2.5rem] shadow-3xl shadow-accent/30 transition-all duration-500 uppercase italic tracking-[0.3em] text-2xl flex items-center justify-center group">
-                                    <span className="mr-4 group-hover:scale-125 transition-transform duration-500">🚀</span> {editingProduct ? 'CẬP NHẬT CƠ SỞ DỮ LIỆU' : 'XÁC NHẬN ĐĂNG BÁN NGAY'}
+                                    <span className="mr-4 group-hover:scale-125 transition-transform duration-500">🚀</span> {editingProduct ? 'CẬP NHẬT CƠ SỞ DỮ LIỆU' : 'XÁC NHẬN ĐĂNG BÁN '}
                                 </button>
                             </div>
                         </form>

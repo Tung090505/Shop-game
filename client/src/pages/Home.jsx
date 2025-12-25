@@ -107,7 +107,10 @@ const Home = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                         {categories.filter(c => !c.parent).map((game) => {
                             const subCategoryNames = categories.filter(c => (c.parent?._id || c.parent) === game._id).map(c => c.name);
-                            const gameItemsCount = products.filter(p => p.category === game.name || subCategoryNames.includes(p.category)).length;
+                            const gameItemsCount = products.filter(p =>
+                                p.category?.toLowerCase() === game.name?.toLowerCase() ||
+                                subCategoryNames.some(name => name?.toLowerCase() === p.category?.toLowerCase())
+                            ).length;
 
                             return (
                                 <Link

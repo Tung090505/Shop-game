@@ -19,7 +19,7 @@ const AdminCategories = () => {
     const [isUploading, setIsUploading] = useState(false);
 
     // Helper: Tìm object thư mục cha từ ID hiện tại
-    const currentParent = categories.find(c => c._id === currentParentId);
+    const currentParent = categories.find(c => String(c._id) === String(currentParentId));
 
     const loadCategories = async () => {
         try {
@@ -37,7 +37,7 @@ const AdminCategories = () => {
     }, []);
 
     const handleOpenModal = (category = null) => {
-        if (category) {
+        if (category && category._id) {
             setEditingCategory(category);
             setFormData({
                 name: category.name,
@@ -54,8 +54,8 @@ const AdminCategories = () => {
                 image: '',
                 description: '',
                 parent: currentParentId,
-                type: 'account',
-                displayOrder: categories.filter(c => (c.parent?._id || c.parent) === currentParentId).length + 1
+                type: currentParent.type || 'account', // Thừa hưởng type từ cha
+                displayOrder: categories.filter(c => String(c.parent?._id || c.parent || '') === String(currentParentId || '')).length + 1
             });
         } else {
             setEditingCategory(null);
@@ -81,8 +81,8 @@ const AdminCategories = () => {
         setIsUploading(true);
         try {
             const res = await uploadImage(uploadFormData);
-            // API trả về imageUrls
-            setFormData({ ...formData, image: res.data.imageUrls[0] });
+            // Sử dụng functional update để tránh race condition
+            setFormData(prev => ({ ...prev, image: res.data.imageUrls[0] }));
             toast.success('Đã tải lên hình ảnh');
         } catch (err) {
             toast.error('Tải ảnh thất bại');
@@ -104,6 +104,7 @@ const AdminCategories = () => {
             setIsModalOpen(false);
             loadCategories();
         } catch (err) {
+            console.error('Submit error:', err);
             toast.error(err.response?.data?.message || 'Thao tác thất bại');
         }
     };
@@ -159,50 +160,41 @@ const AdminCategories = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {categories
                     .filter(cat => {
-                        const parentId = cat.parent?._id || cat.parent || null;
-                        return parentId === (currentParentId || null);
+                        const pid = cat.parent?._id || cat.parent || null;
+                        return String(pid || '') === String(currentParentId || '');
                     })
                     .map((cat) => (
                         <div key={cat._id} className="bg-secondary/40 backdrop-blur-xl rounded-[2.5rem] border border-white/5 overflow-hidden shadow-2xl group transition-all hover:border-accent/30 flex flex-col relative">
-                            {/* Clickable Overlay to "Enter" */}
-                            {!cat.parent && (
-                                <div
-                                    onClick={() => setCurrentParentId(cat._id)}
-                                    className="absolute inset-0 z-0 cursor-pointer"
-                                    title={`Bấm để quản lý các mục con của ${cat.name}`}
-                                ></div>
-                            )}
-
                             <div className="relative h-48 overflow-hidden bg-white/5 pointer-events-none">
                                 {cat.image ? (
                                     <img src={getAssetUrl(cat.image)} alt={cat.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-4xl opacity-20">🎮</div>
                                 )}
-                                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg">
+                                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg z-10">
                                     <span className="text-white font-black text-[10px] uppercase italic tracking-widest">STT: {cat.displayOrder}</span>
                                 </div>
                                 {!cat.parent && (
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center z-10">
                                         <span className="bg-white text-black font-black px-6 py-2 rounded-full text-[10px] uppercase italic tracking-widest transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                                             Quản lý mục con →
                                         </span>
                                     </div>
                                 )}
                             </div>
-                            <div className="p-8 flex-1 flex flex-col relative z-10 pointer-events-auto">
+                            <div className="p-8 flex-1 flex flex-col relative">
                                 <div className="flex items-center gap-2 mb-2">
                                     <h3 className="text-xl font-black text-white uppercase italic tracking-tight">{cat.name}</h3>
                                     <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${cat.type === 'wheel' ? 'bg-orange-500/20 text-orange-500' :
                                         cat.type === 'random' ? 'bg-blue-500/20 text-blue-500' :
                                             'bg-green-500/20 text-green-500'
                                         }`}>
-                                        {cat.type === 'wheel' ? 'Vòng quay' : cat.type === 'random' ? 'Random' : 'Shop Acc'}
+                                        {cat.type === 'wheel' ? 'Vòng quay' : cat.type === 'random' ? 'Random' : cat.type === 'service' ? 'Dịch vụ' : 'Shop Acc'}
                                     </span>
                                 </div>
                                 <p className="text-slate-500 text-xs line-clamp-2 mb-6 flex-1 italic">{cat.description || 'Chưa có mô tả cho thư mục này.'}</p>
 
-                                <div className="flex gap-3">
+                                <div className="flex gap-3 relative z-30">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); handleOpenModal(cat); }}
                                         className="flex-1 bg-white/5 hover:bg-accent hover:text-white text-slate-300 font-black py-3 rounded-xl transition-all uppercase italic text-[10px] tracking-widest border border-white/5"
@@ -217,26 +209,42 @@ const AdminCategories = () => {
                                     </button>
                                 </div>
                             </div>
+                            {/* Clickable Overlay to "Enter" - Moved to end and higher z-index */}
+                            {!cat.parent && (
+                                <div
+                                    onClick={() => setCurrentParentId(cat._id)}
+                                    className="absolute inset-0 z-20 cursor-pointer"
+                                    title={`Bấm để quản lý các mục con của ${cat.name}`}
+                                ></div>
+                            )}
                         </div>
                     ))}
 
                 {/* Empty State */}
-                {categories.filter(cat => (cat.parent?._id || cat.parent || null) === (currentParent?._id || null)).length === 0 && (
-                    <div className="col-span-full py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10 text-center">
-                        <div className="text-6xl mb-6 grayscale opacity-20">📂</div>
-                        <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Chưa có thư mục nào ở đây</h3>
-                        <p className="text-slate-500 mt-2 text-sm italic">Hãy bấm nút "Thêm" để bắt đầu tạo cấu trúc cho Shop của bạn.</p>
-                    </div>
-                )}
+                {categories.filter(cat => {
+                    const pid = cat.parent?._id || cat.parent || null;
+                    return String(pid || '') === String(currentParentId || '');
+                }).length === 0 && (
+                        <div className="col-span-full py-20 bg-white/5 rounded-[3rem] border border-dashed border-white/10 text-center">
+                            <div className="text-6xl mb-6 grayscale opacity-20">📂</div>
+                            <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Chưa có thư mục nào ở đây</h3>
+                            <p className="text-slate-500 mt-2 text-sm italic">Hãy bấm nút "Thêm" để bắt đầu tạo cấu trúc cho Shop của bạn.</p>
+                        </div>
+                    )}
             </div>
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-primary/95 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="bg-secondary p-10 rounded-[3rem] border border-white/10 shadow-2xl w-full max-w-xl relative z-10 animate-in zoom-in-95 duration-300">
-                        <h2 className="text-3xl font-black text-white uppercase italic mb-8 flex items-center leading-none">
-                            <span className="w-2 h-8 bg-accent mr-4 rounded-full"></span>
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                    {/* Backdrop - click to close */}
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
+
+                    {/* Modal Content - must be above backdrop */}
+                    <div className="bg-[#0f172a] p-8 md:p-12 rounded-[3rem] border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] w-full max-w-xl relative z-[10000] animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"></div>
+
+                        <h2 className="text-3xl font-black text-white uppercase italic mb-10 flex items-center leading-none">
+                            <span className="w-2 h-10 bg-accent mr-5 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]"></span>
                             {editingCategory ? 'Sửa thư mục' : 'Thêm thư mục mới'}
                         </h2>
 

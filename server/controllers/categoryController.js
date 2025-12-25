@@ -13,18 +13,30 @@ exports.createCategory = async (req, res) => {
     try {
         const { name, slug, image, description, displayOrder, parent, type } = req.body;
 
+        let finalSlug = slug || name.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove accents
+            .replace(/ /g, '-')
+            .replace(/[^\w-]+/g, '') || 'category';
+
+        // Đảm bảo slug là duy nhất
+        const slugExists = await Category.findOne({ slug: finalSlug });
+        if (slugExists) {
+            finalSlug = `${finalSlug}-${Math.floor(Math.random() * 1000)}`;
+        }
+
         const newCategory = new Category({
             name,
-            slug: slug || name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+            slug: finalSlug,
             image,
             description,
             displayOrder,
-            parent: parent === '' ? null : parent,
+            parent: (parent === '' || !parent) ? null : parent,
             type: type || 'account'
         });
         await newCategory.save();
         res.status(201).json(newCategory);
     } catch (err) {
+        console.error('Create Category Error:', err);
         res.status(400).json({ message: err.message });
     }
 };

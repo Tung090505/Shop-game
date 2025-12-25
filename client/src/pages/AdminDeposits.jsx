@@ -79,8 +79,8 @@ const AdminDeposits = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase italic border ${deposit.method === 'bank' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                                                deposit.method === 'momo' ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' :
-                                                    'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                                            deposit.method === 'momo' ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' :
+                                                'bg-orange-500/10 text-orange-500 border-orange-500/20'
                                             }`}>
                                             {deposit.method === 'bank' ? 'Ngân hàng' :
                                                 deposit.method === 'momo' ? 'Momo' :

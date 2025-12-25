@@ -33,6 +33,7 @@ import Privacy from './pages/Privacy';
 import Warranty from './pages/Warranty';
 import AdminRoute from './components/AdminRoute';
 import { AuthProvider } from './context/AuthContext';
+import DebugData from './pages/DebugData';
 
 
 function App() {
@@ -48,7 +49,7 @@ function App() {
 
             <Navbar />
             <AnnouncementBar />
-            <main className="flex-grow relative z-10">
+            <main className="flex-grow relative">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<Shop />} />
@@ -66,6 +67,7 @@ function App() {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/warranty" element={<Warranty />} />
+                <Route path="/debug" element={<DebugData />} />
 
                 {/* Admin Routes */}
 

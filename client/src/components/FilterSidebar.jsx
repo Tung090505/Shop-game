@@ -46,8 +46,16 @@ const FilterSidebar = ({ setFilters }) => {
                     >
                         <option value="">Tất cả game</option>
                         {categories
+                            .filter(cat => {
+                                // Chỉ hiển thị danh mục "cuối" (có thể chứa sản phẩm):
+                                // 1. Là danh mục con (có parent)
+                                // 2. HOẶC là danh mục gốc nhưng không có danh mục con nào
+                                const hasChildren = categories.some(c => String(c.parent?._id || c.parent || '') === String(cat._id));
+                                return cat.parent || !hasChildren;
+                            })
                             .map(cat => {
-                                const parentName = cat.parent ? (categories.find(c => c._id === (cat.parent?._id || cat.parent))?.name) : null;
+                                const p = cat.parent?._id || cat.parent;
+                                const parentName = p ? (categories.find(c => String(c._id) === String(p))?.name) : null;
                                 return (
                                     <option key={cat._id} value={cat.name}>
                                         {parentName ? `${parentName} > ` : ''}{cat.name}

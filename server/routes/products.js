@@ -8,8 +8,13 @@ router.get('/', async (req, res) => {
     try {
         let query = {};
         if (req.query.category) {
-            // Tìm category hiện tại
-            const category = await Category.findOne({ name: req.query.category });
+            // Helper to escape special regex characters
+            const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            // Tìm category hiện tại (case-insensitive, allow whitespace)
+            const category = await Category.findOne({
+                name: { $regex: new RegExp(`^\\s*${escapeRegex(req.query.category.trim())}\\s*$`, 'i') }
+            });
             if (category) {
                 // Tìm tất cả các category con của nó
                 const subCategories = await Category.find({
@@ -17,15 +22,19 @@ router.get('/', async (req, res) => {
                 });
 
                 if (subCategories.length > 0) {
-                    // Nếu có con, tìm sản phẩm thuộc chính nó HOẶC các con
+                    // Nếu có con, tìm sản phẩm thuộc chính nó HOẶC các con (case-insensitive)
                     const names = [category.name, ...subCategories.map(c => c.name)];
-                    query.category = { $in: names };
+                    // Sử dụng $or thay vì $in để hỗ trợ regex
+                    query.$or = names.map(name => ({
+                        category: { $regex: new RegExp(`^\\s*${escapeRegex(name.trim())}\\s*$`, 'i') }
+                    }));
                 } else {
-                    // Nếu không có con, chỉ tìm theo tên nó
-                    query.category = req.query.category;
+                    // Nếu không có con, chỉ tìm theo tên nó (case-insensitive)
+                    query.category = { $regex: new RegExp(`^\\s*${escapeRegex(category.name.trim())}\\s*$`, 'i') };
                 }
             } else {
-                query.category = req.query.category;
+                // Không tìm thấy category, vẫn thử tìm sản phẩm
+                query.category = { $regex: new RegExp(`^\\s*${escapeRegex(req.query.category.trim())}\\s*$`, 'i') };
             }
         }
         if (req.query.flashSale === 'true') {
