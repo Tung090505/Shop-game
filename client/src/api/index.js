@@ -47,6 +47,9 @@ export const adminUpdateDeposit = (id, status) => API.put(`/deposits/${id}`, { s
 export const adminUpdateUserBalance = (id, amount) => API.put(`/user/update-balance/${id}`, { amount });
 export const adminDeleteUser = (id) => API.delete(`/user/${id}`);
 
+// Public Settings
+export const getSettingsPublic = () => API.get('/settings/public');
+
 // Admin Lucky Wheel Management
 export const adminAddPrize = (data) => API.post('/lucky-wheel/prizes', data);
 export const adminUpdatePrize = (id, data) => API.put(`/lucky-wheel/prizes/${id}`, data);
