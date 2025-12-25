@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchCategories } from '../api';
+import { fetchCategories, getAssetUrl } from '../api';
 import SEO from '../components/SEO';
 
 const Categories = () => {
@@ -51,7 +51,7 @@ const Categories = () => {
                                 {/* Background Image */}
                                 <div
                                     className="absolute inset-0 bg-cover bg-center transition duration-700 group-hover:scale-110"
-                                    style={{ backgroundImage: game.image ? `url(${game.image})` : 'none', backgroundColor: '#1a1a1a' }}
+                                    style={{ backgroundImage: game.image ? `url(${getAssetUrl(game.image)})` : 'none', backgroundColor: '#1a1a1a' }}
                                 >
                                     {!game.image && <div className="w-full h-full flex items-center justify-center text-7xl opacity-20">🎮</div>}
                                 </div>
