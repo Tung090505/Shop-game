@@ -127,18 +127,20 @@ exports.handleCardWebhook = async (req, res) => {
         console.log('✅ Secret Key hợp lệ');
         console.log('Data:', JSON.stringify(data, null, 2));
 
-        const { status, amount, value, request_id, sign, message } = data;
-        const realAmount = Number(amount || value); // Lấy số tiền thực nhận
+        const { status, amount, value, request_id, sign, message, declared_value } = data;
+        const processedAmount = Number(amount || value || 0); // Số tiền thực tế sau chiết khấu từ đối tác
+        const declaredAmount = Number(declared_value || 0); // Mệnh giá gốc gửi lên
 
         // 1. Tìm yêu cầu nạp tiền trong hệ thống
         const deposit = await DepositRequest.findOne({ transactionId: request_id }).populate('user');
         if (!deposit) {
-            console.log('Không tìm thấy giao dịch:', request_id);
+            console.error('❌ Giao dịch không tồn tại trong hệ thống:', request_id);
             return res.status(200).send('Request not found');
         }
 
         // 2. Chỉ xử lý nếu yêu cầu đang chờ (pending)
         if (deposit.status !== 'pending') {
+            console.log('ℹ️ Giao dịch đã được xử lý trước đó:', request_id, 'Trạng thái:', deposit.status);
             return res.status(200).send('Already processed');
         }
 
@@ -146,34 +148,54 @@ exports.handleCardWebhook = async (req, res) => {
         if (String(status) === '1') {
             const user = await User.findById(deposit.user._id);
             if (user) {
-                // Giả định chiết khấu nạp thẻ là 20% (khách nhận 80%)
-                const creditAmount = Math.floor(realAmount * 0.8);
+                // ƯU TIÊN: Cộng đúng số tiền mà đối tác báo về (processedAmount)
+                // Nếu processedAmount = 0 (do API không gửi), mới tính theo chiết khấu 20%
+                let creditAmount = processedAmount;
+                if (creditAmount <= 0) {
+                    creditAmount = Math.floor(deposit.amount * 0.8);
+                    console.log(`⚠️ Đối tác không gửi amount thực nhận, tự tính chiết khấu 20%: ${creditAmount}`);
+                }
 
                 user.balance += creditAmount;
                 await user.save();
 
                 deposit.status = 'approved';
-                deposit.amount = realAmount;
+                deposit.amount = declaredAmount || deposit.amount; // Cập nhật lại mệnh giá nếu có
+
+                // Lưu vết log chi tiết
+                if (!deposit.cardDetails) deposit.cardDetails = {};
+                deposit.cardDetails.partnerStatus = status;
+                deposit.cardDetails.partnerMessage = message;
+                deposit.cardDetails.realReceived = creditAmount;
 
                 await new Transaction({
                     userId: user._id,
                     type: 'deposit',
                     amount: creditAmount,
-                    description: `Nạp thẻ cào thành công (${deposit.cardDetails?.type} ${realAmount.toLocaleString()}đ)`
+                    description: `Nạp thẻ ${deposit.cardDetails?.type || 'cào'} thành công. Thực nhận: ${creditAmount.toLocaleString()}đ (Mệnh giá: ${deposit.amount.toLocaleString()}đ)`
                 }).save();
 
                 // Gửi thông báo real-time
-                const { notifyDepositSuccess } = require('../utils/socket');
-                notifyDepositSuccess(user._id.toString(), {
-                    amount: creditAmount,
-                    newBalance: user.balance
-                });
+                try {
+                    const { notifyDepositSuccess } = require('../utils/socket');
+                    notifyDepositSuccess(user._id.toString(), {
+                        amount: creditAmount,
+                        newBalance: user.balance
+                    });
+                } catch (socketErr) {
+                    console.error('⚠️ Lỗi gửi socket notification:', socketErr.message);
+                }
 
-                console.log(`[TỰ ĐỘNG] Đã cộng ${creditAmount}đ cho ${user.username}`);
+                console.log(`✅ [TỰ ĐỘNG] Đã cộng ${creditAmount}đ cho người dùng ${user.username}`);
             }
         } else {
             // Thẻ lỗi (status khác 1)
+            console.log(`❌ Thẻ bị từ chối bởi đối tác. Status: ${status}, Message: ${message}`);
             deposit.status = 'rejected';
+            if (deposit.cardDetails) {
+                deposit.cardDetails.partnerStatus = status;
+                deposit.cardDetails.partnerMessage = message;
+            }
         }
 
         deposit.updatedAt = Date.now();
