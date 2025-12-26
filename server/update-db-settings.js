@@ -11,7 +11,7 @@ async function fixSettings() {
             { key: 'GACHTHE1S_PARTNER_ID', value: process.env.PARTNER_ID },
             { key: 'GACHTHE1S_PARTNER_KEY', value: process.env.PARTNER_KEY },
             { key: 'ADMIN_BANK_NAME', value: 'MB' },
-            { key: 'ADMIN_BANK_ACCOUNT', value: '788386090505' },
+            { key: 'ADMIN_BANK_ACCOUNT', value: '0869024105' },
             { key: 'ADMIN_BANK_ACCOUNT_NAME', value: 'PHAM THANH TUNG' }
         ];
 

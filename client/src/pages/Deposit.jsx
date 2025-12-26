@@ -135,27 +135,17 @@ const Deposit = () => {
                     transactionId: depositCode
                 });
 
-                // Construct VietQR URL with normalized data
-                let bankId = '970422'; // MB Bank BIN
-                let accountNo = '788386090505'; // Số tài khoản mới của bạn
-                let accountName = 'PHAM THANH TUNG';
+                // Use dynamic bank config
+                const currentBank = bankConfig || {
+                    bankName: 'MB',
+                    accountNo: '0869024105',
+                    accountName: 'PHAM THANH TUNG'
+                };
 
-                // Nếu có bankConfig từ server, lấy dữ liệu từ đó (nhưng vẫn ưu tiên số tài khoản bạn yêu cầu)
-                if (bankConfig) {
-                    let serverBankId = bankConfig.bankName.trim().toUpperCase();
-                    if (serverBankId === 'MB' || serverBankId === 'MBBANK' || serverBankId === '970422') {
-                        bankId = '970422';
-                    } else {
-                        bankId = serverBankId;
-                    }
-                    accountNo = bankConfig.accountNo.replace(/\s/g, '') || accountNo;
-                    accountName = bankConfig.accountName || accountName;
-                }
+                // Construct VietQR URL
+                // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.jpg
+                const url = `https://img.vietqr.io/image/${currentBank.bankName}-${currentBank.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(currentBank.accountName)}`;
 
-                // Dùng link QR theo chuẩn VietQR ổn định nhất
-                const url = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(accountName)}`;
-
-                console.log('🔗 Generated QR URL:', url);
                 setQrUrl(url);
                 setIsSubmitted(true);
                 setTimeLeft(180); // 3 minutes
