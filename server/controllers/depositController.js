@@ -90,38 +90,79 @@ exports.submitDeposit = async (req, res) => {
                 }
             });
 
-            // Nếu không gửi được lên Gachthe1s
-            if (apiError) {
-                newRequest.status = 'pending'; // Để admin xử lý thủ công
-                await newRequest.save();
-                return res.status(500).json({
-                    message: 'Không thể kết nối tới hệ thống nạp thẻ. Yêu cầu của bạn đã được lưu lại, vui lòng liên hệ Admin để xử lý.',
-                    deposit: newRequest,
-                    error: apiError.message
-                });
+            // PHÂN TÍCH KẾT QUẢ TỪ API
+            const status = apiResponse?.data?.status;
+            const message = apiResponse?.data?.message || apiError?.message || 'Unknown error';
+
+            // Lưu dữ liệu Gachthe1s trả về
+            newRequest.cardDetails.partnerStatus = status;
+            newRequest.cardDetails.partnerMessage = message;
+
+            // TRƯỜNG HỢP 1: Thẻ được duyệt ngay lập tức (Status 1 hoặc 99 tùy API, Gachthe1s thường là 1)
+            if (status == 1 || status == 99) {
+                console.log('✨ [INSTANT APPROVAL] Thẻ được duyệt ngay lập tức!');
+
+                const user = await User.findById(req.user._id);
+                if (user) {
+                    // Lấy số tiền thực nhận từ API hoặc tính mặc định 85%
+                    const processedAmount = Number(apiResponse.data.amount || apiResponse.data.value || 0);
+                    let creditAmount = processedAmount;
+                    if (creditAmount <= 0) {
+                        creditAmount = Math.floor(declaredAmount * 0.85);
+                    }
+
+                    user.balance += creditAmount;
+                    await user.save();
+
+                    newRequest.status = 'approved';
+                    newRequest.amount = declaredAmount;
+                    newRequest.cardDetails.realReceived = creditAmount;
+
+                    await new Transaction({
+                        userId: user._id,
+                        type: 'deposit',
+                        amount: creditAmount,
+                        description: `Nạp thẻ ${type} thành công (Duyệt nhanh). Nhận: ${creditAmount.toLocaleString()}đ`
+                    }).save();
+
+                    // Gửi thông báo real-time qua socket
+                    try {
+                        const { notifyDepositSuccess } = require('../utils/socket');
+                        notifyDepositSuccess(user._id.toString(), {
+                            amount: creditAmount,
+                            newBalance: user.balance
+                        });
+                    } catch (sErr) {
+                        console.error('Socket notification error:', sErr.message);
+                    }
+
+                    await newRequest.save();
+
+                    return res.status(200).json({
+                        message: 'Nạp thẻ thành công! Tiền đã được cộng vào tài khoản.',
+                        status: 'success',
+                        deposit: newRequest
+                    });
+                }
             }
 
-            const status = apiResponse.data.status;
-
-            // Nếu thẻ lỗi ngay lập tức (status 3 hoặc 100)
-            if (status === 3 || status === 100) {
-                newRequest.status = 'rejected';
+            // TRƯỜNG HỢP 2: Thẻ đang chờ xử lý (Status 99 hoặc khác)
+            if (status == 99 || !apiError) {
+                newRequest.status = 'pending';
                 await newRequest.save();
-                return res.status(400).json({
-                    message: apiResponse.data.message || 'Thẻ lỗi hoặc không hợp lệ',
+                return res.status(200).json({
+                    message: 'Gửi thẻ thành công! Vui lòng đợi hệ thống duyệt trong vài phút.',
+                    status: 'pending',
                     deposit: newRequest
                 });
             }
 
-            // Nếu thẻ nạp thành công ngay lập tức (status 1)
-            if (status === 1) {
-                console.log('✅ Card approved immediately by Gachthe1s');
-                // Webhook sẽ xử lý việc cộng tiền
-            }
-
+            // TRƯỜNG HỢP 3: Thẻ bị lỗi ngay lập tức
+            newRequest.status = 'rejected';
             await newRequest.save();
-            return res.status(201).json({
-                message: status === 99 ? 'Thẻ đã gửi lên hệ thống, đang chờ xử lý (1-5 phút)' : 'Gửi thẻ thành công',
+            return res.status(400).json({
+                message: `Thẻ bị từ chối: ${message}`,
+                status: 'error',
                 deposit: newRequest
             });
         }
