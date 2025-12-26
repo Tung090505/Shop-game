@@ -38,9 +38,8 @@ exports.register = async (req, res) => {
 
         const savedUser = await user.save();
 
-        // Optional: Log the verification link to console instead of sending email
+        // Send verification link
         const url = `${process.env.BASE_URL}/api/user/verify/${savedUser._id}/${verificationToken}`;
-        console.log(`[DEV] Email verification link for ${savedUser.username}: ${url}`);
 
         /* 
         // Temporarily disabled for development convenience
@@ -318,8 +317,6 @@ exports.forgotPassword = async (req, res) => {
 
         const frontendUrl = process.env.FRONTEND_URL || 'https://shop-game-neon.vercel.app';
         const resetUrl = `${frontendUrl}/reset-password/${token}`;
-
-        console.log(`[DEV] Password reset link for ${user.username}: ${resetUrl}`);
 
         const html = `
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; padding: 40px; background-color: #0f172a; color: white; border-radius: 20px;">

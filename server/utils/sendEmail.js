@@ -4,8 +4,8 @@ const sendEmail = async (email, subject, html) => {
     try {
         console.log(`[Email] Đang gửi thư nhờ Vercel gửi hộ tới: ${email}`);
 
-        // Dùng mã bí mật mặc định nếu chưa có env
-        const mailSecret = process.env.MAIL_SECRET || 'TungLoCoHot2025';
+        // Dùng mã bí mật từ biến môi trường
+        const mailSecret = process.env.MAIL_SECRET;
         const frontendUrl = process.env.FRONTEND_URL || 'https://shop-game-neon.vercel.app';
 
         const response = await axios.post('https://shop-game-neon.vercel.app/api/send-email', {

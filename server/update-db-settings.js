@@ -8,8 +8,8 @@ async function fixSettings() {
         console.log('✅ Connected to MongoDB');
 
         const updates = [
-            { key: 'GACHTHE1S_PARTNER_ID', value: '12757981513' },
-            { key: 'GACHTHE1S_PARTNER_KEY', value: '7bea6961386bb7f8b0d2820bea21424c' }
+            { key: 'GACHTHE1S_PARTNER_ID', value: process.env.PARTNER_ID },
+            { key: 'GACHTHE1S_PARTNER_KEY', value: process.env.PARTNER_KEY }
         ];
 
         for (const up of updates) {
