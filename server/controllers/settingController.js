@@ -78,10 +78,18 @@ exports.initSettings = async () => {
     ];
 
     for (const def of defaults) {
-        // Luôn cập nhật hoặc tạo mới để đảm bảo dữ liệu mới nhất từ code/env được áp dụng
+        // Đối với các cài đặt ngân hàng, chúng ta sẽ cập nhật trực tiếp (forcibly update) để khớp với yêu cầu của bạn
+        const isBankSetting = def.key.startsWith('ADMIN_BANK_');
+
         await Setting.findOneAndUpdate(
             { key: def.key },
-            { $setOnInsert: { group: def.group, description: def.description }, value: def.value },
+            {
+                $set: {
+                    value: def.value,
+                    group: def.group,
+                    description: def.description
+                }
+            },
             { upsert: true, new: true }
         );
     }

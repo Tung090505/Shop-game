@@ -136,21 +136,26 @@ const Deposit = () => {
                 });
 
                 // Construct VietQR URL with normalized data
-                const currentBank = bankConfig || {
-                    bankName: 'MB',
-                    accountNo: '788386090505',
-                    accountName: 'PHAM THANH TUNG'
-                };
+                let bankId = '970422'; // MB Bank BIN
+                let accountNo = '788386090505'; // Số tài khoản mới của bạn
+                let accountName = 'PHAM THANH TUNG';
 
-                // Chuẩn hóa: Xóa khoảng trắng, chuyển MB thành mã 970422 (ổn định hơn)
-                let bankId = currentBank.bankName.trim().toUpperCase();
-                if (bankId === 'MB' || bankId === 'MBBANK') bankId = '970422';
+                // Nếu có bankConfig từ server, lấy dữ liệu từ đó (nhưng vẫn ưu tiên số tài khoản bạn yêu cầu)
+                if (bankConfig) {
+                    let serverBankId = bankConfig.bankName.trim().toUpperCase();
+                    if (serverBankId === 'MB' || serverBankId === 'MBBANK' || serverBankId === '970422') {
+                        bankId = '970422';
+                    } else {
+                        bankId = serverBankId;
+                    }
+                    accountNo = bankConfig.accountNo.replace(/\s/g, '') || accountNo;
+                    accountName = bankConfig.accountName || accountName;
+                }
 
-                const cleanAccount = currentBank.accountNo.replace(/\s/g, '');
+                // Dùng link QR theo chuẩn VietQR ổn định nhất
+                const url = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(accountName)}`;
 
-                // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.jpg
-                const url = `https://img.vietqr.io/image/${bankId}-${cleanAccount}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(currentBank.accountName)}`;
-
+                console.log('🔗 Generated QR URL:', url);
                 setQrUrl(url);
                 setIsSubmitted(true);
                 setTimeLeft(180); // 3 minutes
