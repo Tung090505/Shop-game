@@ -26,7 +26,13 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json({ limit: '10kb' })); // Giới hạn size body để chống DOS
+app.use(express.json({ limit: '10kb' }));
+
+// Fix lỗi "Cannot set property query" của mongoSanitize trên một số môi trường
+app.use((req, res, next) => {
+    req.query = { ...req.query };
+    next();
+});
 app.use(mongoSanitize()); // Chống NoSQL Injection
 
 // Trust proxy
