@@ -3,7 +3,7 @@ const axios = require('axios');
 require('dotenv').config();
 
 const testWebhook = async () => {
-    const secret = process.env.CARD_WEBHOOK_SECRET || 'ShopGameBaoMat2025BaoMat2025Nsryon';
+    const secret = process.env.CARD_WEBHOOK_SECRET;
     const baseUrl = 'http://localhost:5000/api/webhooks/card';
 
     console.log('🧪 Testing Gachthe1s Webhook...\n');

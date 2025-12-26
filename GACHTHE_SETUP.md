@@ -2,12 +2,13 @@
 
 ## ✅ Đã hoàn thành
 
-1. **Cập nhật Partner ID và Partner Key** trong `server/config/cardApi.js`
-   - Partner ID: `12757981513`
-   - Partner Key: `0045270403`
+1. **Cấu hình Biến môi trường** trong hệ thống (Render/Local)
+   - Sử dụng: `PARTNER_ID` và `PARTNER_KEY`
+   - Tuyệt đối không để lộ mã này trong code.
 
-2. **Thêm Secret Key vào Callback URL** để bảo mật
-   - URL: `https://shop-game-dy16.onrender.com/api/webhooks/card?secret=ShopGameBaoMat2025BaoMat2025Nsryon`
+2. **Cấu hình Secret Key cho Webhook**
+   - Sử dụng biến: `CARD_WEBHOOK_SECRET`
+   - Cập nhật URL Callback trên Gachthe1s theo định dạng: `https://your-domain.com/api/webhooks/card?secret=YOUR_SECRET`
 
 3. **Thêm tính năng Test Webhook** trong Admin Settings
    - Truy cập: `/admin/settings`
@@ -20,7 +21,7 @@
 1. Đăng nhập vào https://gachthe1s.com
 2. Vào phần **Cấu hình Callback** (hoặc Settings)
 3. Nhập thông tin:
-   - **Callback URL**: `https://shop-game-dy16.onrender.com/api/webhooks/card?secret=ShopGameBaoMat2025BaoMat2025Nsryon`
+   - **Callback URL**: `https://your-domain.com/api/webhooks/card?secret=YOUR_SECRET`
    - **Method**: `POST`
 4. Lưu cấu hình
 5. Test bằng cách nạp thẻ thử (hoặc dùng chức năng test của Gachthe1s)
@@ -45,7 +46,7 @@
    - Không có giao dịch = không có webhook
 
 2. **Kiểm tra Secret Key**
-   - Mọi request đến webhook phải có `?secret=ShopGameBaoMat2025BaoMat2025Nsryon`
+   - Mọi request đến webhook phải có `?secret=YOUR_SECRET`
    - Nếu không có hoặc sai secret, sẽ bị từ chối (403 Forbidden)
 
 3. **Cập nhật Settings trong Database**
@@ -69,7 +70,7 @@ git push
 
 Sau khi deploy, kiểm tra:
 1. ✅ Server đang chạy: https://shop-game-dy16.onrender.com
-2. ✅ Webhook endpoint: https://shop-game-dy16.onrender.com/api/webhooks/card?secret=ShopGameBaoMat2025BaoMat2025Nsryon
+2. ✅ Webhook endpoint: `https://your-domain.com/api/webhooks/card?secret=YOUR_SECRET`
 3. ✅ Admin Settings: https://[your-frontend-url]/admin/settings
 
 ## 🐛 Debug

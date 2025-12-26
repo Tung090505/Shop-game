@@ -121,7 +121,7 @@ exports.handleCardWebhook = async (req, res) => {
 
         // 2. Bảo mật: Kiểm tra Secret Key (Chấp nhận cả trong URL và Body)
         const webhookSecret = req.query.secret || req.body.secret;
-        const EXPECTED_SECRET = process.env.CARD_WEBHOOK_SECRET || 'ShopGameBaoMat2025BaoMat2025Nsryon';
+        const EXPECTED_SECRET = process.env.CARD_WEBHOOK_SECRET;
 
         if (webhookSecret !== EXPECTED_SECRET) {
             console.error('❌ Webhook sai hoặc thiếu Secret Key:', webhookSecret);
