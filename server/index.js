@@ -30,9 +30,9 @@ app.use(express.json({ limit: '10kb' }));
 
 // Fix lỗi "Cannot set property" của mongoSanitize trên Express 5 / Render
 app.use((req, res, next) => {
-    req.query = { ...req.query };
-    req.body = { ...req.body };
-    req.params = { ...req.params };
+    Object.defineProperty(req, 'query', { value: { ...req.query }, writable: true, configurable: true });
+    Object.defineProperty(req, 'body', { value: { ...req.body }, writable: true, configurable: true });
+    Object.defineProperty(req, 'params', { value: { ...req.params }, writable: true, configurable: true });
     next();
 });
 app.use(mongoSanitize()); // Chống NoSQL Injection
