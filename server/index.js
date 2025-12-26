@@ -28,9 +28,11 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10kb' }));
 
-// Fix lỗi "Cannot set property query" của mongoSanitize trên một số môi trường
+// Fix lỗi "Cannot set property" của mongoSanitize trên Express 5 / Render
 app.use((req, res, next) => {
     req.query = { ...req.query };
+    req.body = { ...req.body };
+    req.params = { ...req.params };
     next();
 });
 app.use(mongoSanitize()); // Chống NoSQL Injection
