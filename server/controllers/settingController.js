@@ -70,8 +70,8 @@ exports.updateSetting = async (req, res) => {
 // API: Initialize Default Settings (Chạy 1 lần để seed data nếu chưa có)
 exports.initSettings = async () => {
     const defaults = [
-        { key: 'GACHTHE1S_PARTNER_ID', value: process.env.GACHTHE1S_PARTNER_ID || '12757981513', group: 'payment', description: 'Partner ID từ Gachthe1s.com' },
-        { key: 'GACHTHE1S_PARTNER_KEY', value: process.env.GACHTHE1S_PARTNER_KEY || '7bea6961386bb7f8b0d2820bea21424c', group: 'payment', description: 'Partner Key từ Gachthe1s.com (KHÔNG phải mã ví điện tử!)' },
+        { key: 'GACHTHE1S_PARTNER_ID', value: process.env.PARTNER_ID || '12757981513', group: 'payment', description: 'Partner ID từ Gachthe1s.com' },
+        { key: 'GACHTHE1S_PARTNER_KEY', value: process.env.PARTNER_KEY || '7bea6961386bb7f8b0d2820bea21424c', group: 'payment', description: 'Partner Key từ Gachthe1s.com (KHÔNG phải mã ví điện tử!)' },
         { key: 'ADMIN_BANK_NAME', value: 'MB', group: 'banking', description: 'Tên ngân hàng (ShortName: MB, VCB...)', isPublic: true },
         { key: 'ADMIN_BANK_ACCOUNT', value: '0869024105', group: 'banking', description: 'Số tài khoản nhận tiền', isPublic: true },
         { key: 'ADMIN_BANK_ACCOUNT_NAME', value: 'PHAM THANH TUNG', group: 'banking', description: 'Tên chủ tài khoản', isPublic: true }

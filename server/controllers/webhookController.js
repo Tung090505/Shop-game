@@ -111,11 +111,17 @@ exports.handleCardWebhook = async (req, res) => {
 
         // 1. Lấy dữ liệu từ mọi nguồn có thể (Body, Query)
         const data = { ...req.query, ...req.body };
-        console.log('📦 Webhook Data Payload:', JSON.stringify(data, null, 2));
+
+        // Bảo mật log: Ẩn thông tin thẻ
+        const safeData = { ...data };
+        if (safeData.code) safeData.code = '***';
+        if (safeData.serial) safeData.serial = safeData.serial.substring(0, 4) + '***';
+
+        console.log('📦 Webhook Data Payload (Masked):', JSON.stringify(safeData, null, 2));
 
         // 2. Bảo mật: Kiểm tra Secret Key (Chấp nhận cả trong URL và Body)
         const webhookSecret = req.query.secret || req.body.secret;
-        const EXPECTED_SECRET = 'ShopGameBaoMat2025BaoMat2025Nsryon';
+        const EXPECTED_SECRET = process.env.CARD_WEBHOOK_SECRET || 'ShopGameBaoMat2025BaoMat2025Nsryon';
 
         if (webhookSecret !== EXPECTED_SECRET) {
             console.error('❌ Webhook sai hoặc thiếu Secret Key:', webhookSecret);

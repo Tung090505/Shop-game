@@ -7,42 +7,48 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 
+const mongoSanitize = require('express-mongo-sanitize');
+
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Triggering a refresh build
+const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Security Middleware
 app.use(helmet({
-    crossOriginResourcePolicy: false, // Cho phép tải ảnh từ server khác
-    contentSecurityPolicy: false      // Không chặn các script lạ
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false
 }));
+app.disable('x-powered-by'); // Ẩn thông tin Server (Express)
+
 app.use(cors({
-    origin: '*', // Chấp nhận tất cả nguồn (điện thoại, web khác...)
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' })); // Giới hạn size body để chống DOS
+app.use(mongoSanitize()); // Chống NoSQL Injection
 
-// Trust proxy - Required for Render.com and other reverse proxies
+// Trust proxy
 app.set('trust proxy', 1);
 
-// Create uploads folder if it doesn't exist
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
-
-// Static Files
-app.use('/uploads', express.static(uploadDir));
-
-// Rate Limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // Tăng giới hạn lên 1000 requests để bạn thoải mái test
-    message: 'Hệ thống phát hiện quá nhiều yêu cầu, vui lòng thử lại sau 15 phút.'
+// Limiters cho từng loại endpoint
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 500,
+    message: 'Quá nhiều yêu cầu từ IP này.'
 });
-app.use('/api/', limiter);
+
+const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 giờ
+    max: 20, // Chỉ cho phép 20 lần thử login/register mỗi giờ từ 1 IP
+    message: 'Bạn đã thử quá nhiều lần, vui lòng đợi sau 1 giờ.'
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/user/login', authLimiter);
+app.use('/api/user/register', authLimiter);
+app.use('/api/deposits/submit', rateLimit({ windowMs: 1 * 60 * 1000, max: 2 })); // 1 phút chỉ được nạp 2 thẻ
 
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)

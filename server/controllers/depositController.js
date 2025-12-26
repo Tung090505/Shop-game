@@ -60,12 +60,19 @@ exports.submitDeposit = async (req, res) => {
                         'Content-Type': 'application/json'
                     }
                 });
-                console.log('✅ Gachthe1s Response:', apiResponse.data);
+                const safeResponse = apiResponse?.data ? { ...apiResponse.data } : {};
+                if (safeResponse.code) safeResponse.code = '***';
+                if (safeResponse.serial) safeResponse.serial = safeResponse.serial.substring(0, 4) + '***';
+                console.log('✅ Gachthe1s Response (Masked):', safeResponse);
             } catch (error) {
                 apiError = error;
+                const safeErrResponse = error.response?.data ? { ...error.response.data } : {};
+                if (safeErrResponse.code) safeErrResponse.code = '***';
+                if (safeErrResponse.serial) safeErrResponse.serial = safeErrResponse.serial.substring(0, 4) + '***';
+
                 console.error('❌ Gachthe1s API Error:', {
                     message: error.message,
-                    response: error.response?.data,
+                    response: safeErrResponse,
                     status: error.response?.status,
                     code: error.code
                 });
