@@ -108,6 +108,11 @@ exports.handleBankWebhook = async (req, res) => {
 exports.handleCardWebhook = async (req, res) => {
     try {
         console.log('--- CARD WEBHOOK RECEIVED ---');
+        console.log('Method:', req.method);
+        console.log('Headers:', JSON.stringify(req.headers, null, 2));
+        console.log('Query:', JSON.stringify(req.query, null, 2));
+        console.log('Body:', JSON.stringify(req.body, null, 2));
+
         // Hỗ trợ cả POST (req.body) và GET (req.query)
         const data = Object.keys(req.body).length > 0 ? req.body : req.query;
 
@@ -119,7 +124,8 @@ exports.handleCardWebhook = async (req, res) => {
             return res.status(403).send('Forbidden: Invalid Secret Key');
         }
 
-        console.log(JSON.stringify(data, null, 2));
+        console.log('✅ Secret Key hợp lệ');
+        console.log('Data:', JSON.stringify(data, null, 2));
 
         const { status, amount, value, request_id, sign, message } = data;
         const realAmount = Number(amount || value); // Lấy số tiền thực nhận

@@ -6,6 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 const AdminSettings = () => {
     const [settings, setSettings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [testingWebhook, setTestingWebhook] = useState(false);
     const { user } = useContext(AuthContext);
 
     // Mapping key hiển thị cho đẹp
@@ -46,6 +47,26 @@ const AdminSettings = () => {
     const getValue = (key) => {
         const setting = settings.find(s => s.key === key);
         return setting ? setting.value : '';
+    };
+
+    // Test webhook endpoint
+    const testWebhook = async () => {
+        setTestingWebhook(true);
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'https://shop-game-dy16.onrender.com/api';
+            const response = await fetch(`${apiUrl}/webhooks/card?secret=ShopGameBaoMat2025BaoMat2025Nsryon`);
+            const text = await response.text();
+
+            if (response.ok) {
+                toast.success(`✅ Webhook hoạt động! Response: ${text}`);
+            } else {
+                toast.error(`❌ Webhook lỗi! Status: ${response.status}`);
+            }
+        } catch (err) {
+            toast.error(`❌ Không thể kết nối: ${err.message}`);
+        } finally {
+            setTestingWebhook(false);
+        }
     };
 
     // Auto generate callback URL
@@ -96,6 +117,33 @@ const AdminSettings = () => {
                                 {callbackUrl}
                             </div>
                             <p className="text-[10px] text-slate-500 mt-2 italic">* Đảm bảo chọn kiểu <b>POST</b> khi cấu hình trên Gachthe1s.</p>
+
+                            {/* Test Button */}
+                            <button
+                                onClick={testWebhook}
+                                disabled={testingWebhook}
+                                className="mt-4 w-full bg-accent hover:bg-accent/80 disabled:bg-slate-600 text-white font-black py-3 px-6 rounded-xl uppercase tracking-wider transition-all transform hover:scale-[1.02] active:scale-95 disabled:cursor-not-allowed"
+                            >
+                                {testingWebhook ? '🔄 Đang kiểm tra...' : '🧪 Test Webhook Endpoint'}
+                            </button>
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="mt-6 bg-black/20 p-4 rounded-xl border border-accent/20">
+                            <h3 className="text-sm font-black text-accent uppercase mb-3">📋 Hướng dẫn cấu hình Gachthe1s</h3>
+                            <ol className="text-xs text-slate-300 space-y-2 list-decimal list-inside">
+                                <li>Truy cập <a href="https://gachthe1s.com" target="_blank" className="text-accent underline">gachthe1s.com</a> và đăng nhập</li>
+                                <li>Vào phần <b>Cấu hình Callback</b></li>
+                                <li>Copy URL ở trên và paste vào ô <b>Callback URL</b></li>
+                                <li>Chọn phương thức: <b>POST</b></li>
+                                <li>Lưu cấu hình</li>
+                                <li>Nhấn nút <b>Test Webhook</b> ở trên để kiểm tra</li>
+                            </ol>
+                            <div className="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                                <p className="text-[10px] text-green-400">
+                                    ✅ <b>Lưu ý:</b> Webhook chỉ nhận được dữ liệu khi có giao dịch thực tế từ Gachthe1s
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
