@@ -135,16 +135,21 @@ const Deposit = () => {
                     transactionId: depositCode
                 });
 
-                // Use dynamic bank config
+                // Construct VietQR URL with normalized data
                 const currentBank = bankConfig || {
                     bankName: 'MB',
-                    accountNo: '0869024105',
+                    accountNo: '788386090505',
                     accountName: 'PHAM THANH TUNG'
                 };
 
-                // Construct VietQR URL
+                // Chuẩn hóa: Xóa khoảng trắng, chuyển MB thành mã 970422 (ổn định hơn)
+                let bankId = currentBank.bankName.trim().toUpperCase();
+                if (bankId === 'MB' || bankId === 'MBBANK') bankId = '970422';
+
+                const cleanAccount = currentBank.accountNo.replace(/\s/g, '');
+
                 // Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.jpg
-                const url = `https://img.vietqr.io/image/${currentBank.bankName}-${currentBank.accountNo}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(currentBank.accountName)}`;
+                const url = `https://img.vietqr.io/image/${bankId}-${cleanAccount}-compact2.jpg?amount=${amount}&addInfo=${depositCode}&accountName=${encodeURIComponent(currentBank.accountName)}`;
 
                 setQrUrl(url);
                 setIsSubmitted(true);

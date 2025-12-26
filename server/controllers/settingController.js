@@ -78,10 +78,11 @@ exports.initSettings = async () => {
     ];
 
     for (const def of defaults) {
-        const exists = await Setting.findOne({ key: def.key });
-        if (!exists && def.value) {
-            await Setting.create(def);
-            console.log(`Initialized setting: ${def.key}`);
-        }
+        // Luôn cập nhật hoặc tạo mới để đảm bảo dữ liệu mới nhất từ code/env được áp dụng
+        await Setting.findOneAndUpdate(
+            { key: def.key },
+            { $setOnInsert: { group: def.group, description: def.description }, value: def.value },
+            { upsert: true, new: true }
+        );
     }
 };
