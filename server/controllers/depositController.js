@@ -22,6 +22,7 @@ exports.submitDeposit = async (req, res) => {
             const partnerKey = await getConfig('GACHTHE1S_PARTNER_KEY');
 
             if (!partnerId || !partnerKey) {
+                console.error('❌ Gachthe1s config missing:', { partnerId, partnerKey });
                 return res.status(500).json({ message: 'Hệ thống nạp thẻ chưa được cấu hình. Vui lòng liên hệ Admin.' });
             }
 
@@ -39,32 +40,88 @@ exports.submitDeposit = async (req, res) => {
                 command: 'charging'
             };
 
-            const response = await axios.post(cardConfig.API_URL, apiData);
-            const status = response.data.status; // Giả định theo API phổ biến: 1, 2, 3, 99...
+            console.log('🔄 Sending card to Gachthe1s:', {
+                url: cardConfig.API_URL,
+                requestId,
+                telco: type,
+                amount: declaredAmount,
+                serial: serial.substring(0, 4) + '***', // Ẩn một phần serial
+                pin: '***' // Ẩn hoàn toàn PIN
+            });
 
+            let apiResponse = null;
+            let apiError = null;
+
+            // Gửi request lên Gachthe1s với error handling
+            try {
+                apiResponse = await axios.post(cardConfig.API_URL, apiData, {
+                    timeout: 30000, // 30 seconds timeout
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                console.log('✅ Gachthe1s Response:', apiResponse.data);
+            } catch (error) {
+                apiError = error;
+                console.error('❌ Gachthe1s API Error:', {
+                    message: error.message,
+                    response: error.response?.data,
+                    status: error.response?.status,
+                    code: error.code
+                });
+            }
+
+            // Tạo deposit request trong DB (dù API có lỗi hay không)
             const newRequest = new DepositRequest({
                 user: req.user._id,
                 amount: declaredAmount,
                 method: 'card',
                 transactionId: requestId,
-                cardDetails: { ...cardDetails, requestId, partnerStatus: status }
+                cardDetails: {
+                    ...cardDetails,
+                    requestId,
+                    partnerStatus: apiResponse?.data?.status || 'error',
+                    partnerMessage: apiResponse?.data?.message || apiError?.message || 'Unknown error',
+                    apiError: apiError ? {
+                        message: apiError.message,
+                        code: apiError.code,
+                        response: apiError.response?.data
+                    } : null
+                }
             });
+
+            // Nếu không gửi được lên Gachthe1s
+            if (apiError) {
+                newRequest.status = 'pending'; // Để admin xử lý thủ công
+                await newRequest.save();
+                return res.status(500).json({
+                    message: 'Không thể kết nối tới hệ thống nạp thẻ. Yêu cầu của bạn đã được lưu lại, vui lòng liên hệ Admin để xử lý.',
+                    deposit: newRequest,
+                    error: apiError.message
+                });
+            }
+
+            const status = apiResponse.data.status;
 
             // Nếu thẻ lỗi ngay lập tức (status 3 hoặc 100)
             if (status === 3 || status === 100) {
                 newRequest.status = 'rejected';
                 await newRequest.save();
-                return res.status(400).json({ message: response.data.message || 'Thẻ lỗi hoặc không hợp lệ' });
+                return res.status(400).json({
+                    message: apiResponse.data.message || 'Thẻ lỗi hoặc không hợp lệ',
+                    deposit: newRequest
+                });
             }
 
-            // Nếu thẻ nạp thành công ngay lập tức (status 1 hoặc 2)
-            if (status === 1 || status === 2) {
-                // ... Xử lý cộng tiền ngay lập tức nếu cần (thường status 99 là phổ biến nhất)
+            // Nếu thẻ nạp thành công ngay lập tức (status 1)
+            if (status === 1) {
+                console.log('✅ Card approved immediately by Gachthe1s');
+                // Webhook sẽ xử lý việc cộng tiền
             }
 
             await newRequest.save();
             return res.status(201).json({
-                message: status === 99 ? 'Thẻ đã gửi lên hệ thống, đang chờ xử lý' : 'Gửi thẻ thành công',
+                message: status === 99 ? 'Thẻ đã gửi lên hệ thống, đang chờ xử lý (1-5 phút)' : 'Gửi thẻ thành công',
                 deposit: newRequest
             });
         }

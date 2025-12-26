@@ -9,7 +9,11 @@ const DepositRequestSchema = new mongoose.Schema({
         type: { type: String },
         serial: { type: String },
         pin: { type: String },
-        declaredAmount: { type: Number }
+        declaredAmount: { type: Number },
+        requestId: { type: String }, // Request ID gửi lên Gachthe1s
+        partnerStatus: { type: mongoose.Schema.Types.Mixed }, // Status code từ Gachthe1s (1, 2, 3, 99, etc.)
+        partnerMessage: { type: String }, // Message từ Gachthe1s
+        apiError: { type: mongoose.Schema.Types.Mixed } // Lưu error nếu API call thất bại
     },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
     bankTransactionId: { type: String }, // Lưu mã giao dịch từ phía Ngân hàng (SePay/Casso/PayOS)
