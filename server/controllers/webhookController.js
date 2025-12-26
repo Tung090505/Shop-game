@@ -107,40 +107,46 @@ exports.handleBankWebhook = async (req, res) => {
 
 exports.handleCardWebhook = async (req, res) => {
     try {
-        console.log('--- CARD WEBHOOK RECEIVED ---');
-        console.log('Method:', req.method);
-        console.log('Headers:', JSON.stringify(req.headers, null, 2));
-        console.log('Query:', JSON.stringify(req.query, null, 2));
-        console.log('Body:', JSON.stringify(req.body, null, 2));
+        console.log('--- 🛡️ CARD WEBHOOK RECEIVED ---');
 
-        // Hỗ trợ cả POST (req.body) và GET (req.query)
-        const data = Object.keys(req.body).length > 0 ? req.body : req.query;
+        // 1. Lấy dữ liệu từ mọi nguồn có thể (Body, Query)
+        const data = { ...req.query, ...req.body };
+        console.log('📦 Webhook Data Payload:', JSON.stringify(data, null, 2));
 
-        // Bảo mật: Kiểm tra Secret Key từ URL (Chặn fake request)
-        // URL cấu hình: ...?secret=ShopGameBaoMat2025BaoMat2025Nsryon
-        const webhookSecret = req.query.secret;
-        if (webhookSecret !== 'ShopGameBaoMat2025BaoMat2025Nsryon') {
-            console.log('⚠ Webhook sai Secret Key:', webhookSecret);
-            return res.status(403).send('Forbidden: Invalid Secret Key');
+        // 2. Bảo mật: Kiểm tra Secret Key (Chấp nhận cả trong URL và Body)
+        const webhookSecret = req.query.secret || req.body.secret;
+        const EXPECTED_SECRET = 'ShopGameBaoMat2025BaoMat2025Nsryon';
+
+        if (webhookSecret !== EXPECTED_SECRET) {
+            console.error('❌ Webhook sai hoặc thiếu Secret Key:', webhookSecret);
+            // Ghi log lỗi vào console để bạn copy cho tôi xem nếu cần
+            return res.status(403).json({
+                message: 'Forbidden: Invalid Secret Key',
+                received: webhookSecret
+            });
         }
 
-        console.log('✅ Secret Key hợp lệ');
-        console.log('Data:', JSON.stringify(data, null, 2));
+        console.log('✅ Secret Key hợp lệ, bắt đầu xử lý...');
 
         const { status, amount, value, request_id, sign, message, declared_value } = data;
         const processedAmount = Number(amount || value || 0); // Số tiền thực tế sau chiết khấu từ đối tác
         const declaredAmount = Number(declared_value || 0); // Mệnh giá gốc gửi lên
 
-        // 1. Tìm yêu cầu nạp tiền trong hệ thống
-        const deposit = await DepositRequest.findOne({ transactionId: request_id }).populate('user');
-        if (!deposit) {
-            console.error('❌ Giao dịch không tồn tại trong hệ thống:', request_id);
-            return res.status(200).send('Request not found');
+        // 3. Tìm yêu cầu nạp tiền trong hệ thống
+        if (!request_id) {
+            console.error('❌ Webhook không gửi request_id');
+            return res.status(200).send('Missing request_id');
         }
 
-        // 2. Chỉ xử lý nếu yêu cầu đang chờ (pending)
+        const deposit = await DepositRequest.findOne({ transactionId: request_id }).populate('user');
+        if (!deposit) {
+            console.error('❌ Giao dịch không tồn tại trong DB của web:', request_id);
+            return res.status(200).send('Request not found in local DB');
+        }
+
+        // 4. Chỉ xử lý nếu yêu cầu đang chờ (pending)
         if (deposit.status !== 'pending') {
-            console.log('ℹ️ Giao dịch đã được xử lý trước đó:', request_id, 'Trạng thái:', deposit.status);
+            console.log('ℹ️ Giao dịch này đã được xử lý rồi:', request_id, 'Trạng thái hiện tại:', deposit.status);
             return res.status(200).send('Already processed');
         }
 
