@@ -93,8 +93,22 @@ const Deposit = () => {
             if (setUser && user) setUser({ ...user, balance: data.newBalance });
             setTimeout(() => navigate('/'), 2000);
         };
+
+        const handleDepositRejected = (data) => {
+            console.log('❌ Deposit rejected:', data);
+            toast.error(
+                `❌ Thẻ nạp thất bại!\nLý do: ${data.message || 'Thẻ không hợp lệ'}`,
+                { duration: 6000, style: { background: '#ef4444', color: '#fff', fontWeight: 'bold', fontSize: '14px' } }
+            );
+        };
+
         socket.on('deposit_approved', handleDepositApproved);
-        return () => socket.off('deposit_approved', handleDepositApproved);
+        socket.on('deposit_rejected', handleDepositRejected);
+
+        return () => {
+            socket.off('deposit_approved', handleDepositApproved);
+            socket.off('deposit_rejected', handleDepositRejected);
+        };
     }, [socket, navigate, user, setUser]);
 
     const transferContent = depositCode;

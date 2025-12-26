@@ -196,6 +196,17 @@ exports.handleCardWebhook = async (req, res) => {
                 deposit.cardDetails.partnerStatus = status;
                 deposit.cardDetails.partnerMessage = message;
             }
+
+            // GỬI THÔNG BÁO THẺ LỖI
+            try {
+                const { notifyDepositError } = require('../utils/socket');
+                notifyDepositError(deposit.user._id.toString(), {
+                    message: message || 'Thẻ không hợp lệ hoặc sai mệnh giá',
+                    transactionId: request_id
+                });
+            } catch (socketErr) {
+                console.error('⚠️ Lỗi gửi socket notification (Error):', socketErr.message);
+            }
         }
 
         deposit.updatedAt = Date.now();

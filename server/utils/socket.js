@@ -51,8 +51,24 @@ const notifyDepositSuccess = (userId, depositData) => {
     }
 };
 
+// Emit deposit error notification to specific user
+const notifyDepositError = (userId, errorData) => {
+    try {
+        const io = getIO();
+        io.to(`user_${userId}`).emit('deposit_rejected', {
+            message: errorData.message || 'Thẻ không hợp lệ!',
+            transactionId: errorData.transactionId,
+            timestamp: new Date()
+        });
+        console.log(`📢 Sent deposit REJECTED notification to user ${userId}`);
+    } catch (error) {
+        console.error('Error sending socket error notification:', error);
+    }
+};
+
 module.exports = {
     initSocket,
     getIO,
-    notifyDepositSuccess
+    notifyDepositSuccess,
+    notifyDepositError
 };
