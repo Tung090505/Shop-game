@@ -30,7 +30,7 @@ exports.register = async (req, res) => {
             username: req.body.username,
             email: req.body.email,
             password: hashedPassword,
-            isVerified: true, // Auto-verify for testing
+            isVerified: true, // Tự động xác thực
             verificationToken: verificationToken,
             referralCode: myReferralCode,
             referredBy: referrer ? referrer._id : undefined
@@ -68,12 +68,10 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ username: req.body.username });
         if (!user) return res.status(400).send('Username is not found');
 
-        if (!user.isVerified) {
-            return res.status(401).send('Please verify your email first');
-        }
 
         const validPass = await bcrypt.compare(req.body.password, user.password);
-        if (!validPass) return res.status(400).send('Invalid password');
+        if (!validPass) return res.status(400).send('Mật khẩu không chính xác');
+
 
         // SECURITY: 2FA cho Admin
         if (user.role === 'admin') {
@@ -101,6 +99,8 @@ exports.login = async (req, res) => {
         }
 
         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
+
+
         res.header('auth-token', token).send({
             token,
             user: {

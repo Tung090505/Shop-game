@@ -56,6 +56,21 @@ const authLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 app.use('/api/user/login', authLimiter);
 app.use('/api/user/register', authLimiter);
+app.use('/api/user/verify-login-otp', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: 'Bạn đã nhập sai mã OTP quá nhiều lần. Vui lòng đợi 15 phút.'
+}));
+app.use('/api/user/forgot-password', rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 3,
+    message: 'Bạn chỉ được yêu cầu đổi mật khẩu 3 lần mỗi giờ.'
+}));
+app.use('/api/user/reset-password', rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: 'Quá nhiều lần thử đặt lại mật khẩu.'
+}));
 app.use('/api/deposits/submit', rateLimit({ windowMs: 1 * 60 * 1000, max: 2 })); // 1 phút chỉ được nạp 2 thẻ
 
 // Database Connection
