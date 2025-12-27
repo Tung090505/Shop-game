@@ -8,7 +8,7 @@ router.post('/login', authController.login);
 router.get('/verify/:id/:token', authController.verifyEmail);
 router.get('/profile', verifyToken, authController.getProfile);
 router.get('/transactions', verifyToken, authController.getTransactions);
-router.post('/topup', verifyToken, authController.topup);
+router.post('/topup', verifyToken, isAdmin, authController.topup);
 router.post('/withdraw-commission', verifyToken, authController.withdrawCommission);
 router.post('/change-password', verifyToken, authController.changePassword);
 router.post('/forgot-password', authController.forgotPassword);

@@ -6,56 +6,58 @@ const Transaction = require('../models/Transaction');
 exports.createOrder = async (req, res) => {
     try {
         const { productId } = req.body;
-        const product = await Product.findById(productId);
-        if (!product) return res.status(404).json({ message: 'Product not found' });
-        if (product.status === 'sold') return res.status(400).json({ message: 'Product already sold' });
 
-        const user = await User.findById(req.user._id);
-        if (user.balance < product.price) {
-            return res.status(400).json({ message: 'Insufficient balance' });
+        // BƯỚC 1: KHÓA SẢN PHẨM (ATOMIC)
+        // Tìm sản phẩm còn 'available' và đổi ngay sang 'sold' trong 1 câu lệnh.
+        // Nếu 10 người cùng mua, chỉ 1 người thành công đổi trạng thái này.
+        const product = await Product.findOneAndUpdate(
+            { _id: productId, status: 'available' },
+            { $set: { status: 'sold' } },
+            { new: true }
+        );
+
+        if (!product) {
+            return res.status(400).json({ message: 'Sản phẩm đã bị người khác mua mất hoặc không tồn tại!' });
         }
 
-        user.balance -= product.price;
-        await user.save();
+        // BƯỚC 2: TRỪ TIỀN NGƯỜI DÙNG (ATOMIC)
+        // Chỉ trừ tiền nếu balance >= giá sản phẩm.
+        const user = await User.findOneAndUpdate(
+            { _id: req.user._id, balance: { $gte: product.price } },
+            { $inc: { balance: -product.price } },
+            { new: true }
+        );
 
+        // BƯỚC 3: ROLLBACK NẾU THIẾU TIỀN
+        if (!user) {
+            // Nếu người dùng không đủ tiền, ta phải trả lại trạng thái 'available' cho sản phẩm
+            await Product.findByIdAndUpdate(productId, { $set: { status: 'available' } });
+            return res.status(400).json({ message: 'Số dư tài khoản không đủ để mua sản phẩm này!' });
+        }
+
+        // BƯỚC 4: GHI LOG GIAO DỊCH
         await new Transaction({
             userId: user._id,
             type: 'purchase',
             amount: -product.price,
-            description: `Purchase: ${product.title}`
+            description: `Mua tài khoản: ${product.title} (#${product._id})`
         }).save();
 
-        product.status = 'sold';
-        await product.save();
-
+        // Xử lý hoa hồng cộng tác viên (giữ nguyên logic cũ của bạn)
         if (user.referredBy) {
             const commission = Math.floor(product.price * 0.05);
-            console.log(`[ORDER] Checking commission for User ${user.username}, Ref: ${user.referredBy}, Price: ${product.price}, Comm: ${commission}`);
-
             if (commission > 0) {
                 const referrer = await User.findById(user.referredBy);
                 if (referrer) {
-                    console.log(`[ORDER] Found Referrer: ${referrer.username}, Old Balance: ${referrer.commissionBalance}`);
-
-                    // Initialize if undefined to avoid NaN
-                    if (!referrer.commissionBalance) referrer.commissionBalance = 0;
-
-                    referrer.commissionBalance += commission;
+                    referrer.commissionBalance = (referrer.commissionBalance || 0) + commission;
                     await referrer.save();
-
-                    console.log(`[ORDER] Commission added. New Balance: ${referrer.commissionBalance}`);
-
                     await new Transaction({
                         userId: referrer._id,
                         type: 'deposit',
                         amount: commission,
-                        description: `Affiliate Commission from ${user.username} buying ${product.title}`
+                        description: `Hoa hồng giới thiệu từ ${user.username} mua ${product.title}`
                     }).save();
-                } else {
-                    console.log(`[ORDER] Referrer not found for ID: ${user.referredBy}`);
                 }
-            } else {
-                console.log(`[ORDER] Commission is 0, skipping.`);
             }
         }
 
@@ -66,9 +68,10 @@ exports.createOrder = async (req, res) => {
         });
         await order.save();
 
-        res.json({ message: 'Purchase successful', order });
+        res.json({ message: 'Mua hàng thành công!', order });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Lỗi mua hàng:', err);
+        res.status(500).json({ message: 'Lỗi hệ thống, vui lòng thử lại sau.' });
     }
 };
 

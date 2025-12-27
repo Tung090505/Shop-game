@@ -6,6 +6,14 @@ const DepositRequest = require('../models/DepositRequest');
 exports.handleBankWebhook = async (req, res) => {
     try {
         console.log('--- SEPAY WEBHOOK RECEIVED ---');
+
+        // BẢO MẬT: Kiểm tra API Key (Phải khớp với biến SEPAY_WEBHOOK_KEY trong .env)
+        const apiKey = req.headers['x-api-key'] || req.query.api_key;
+        if (!apiKey || apiKey !== process.env.SEPAY_WEBHOOK_KEY) {
+            console.error('❌ CẢNH BÁO: Phát hiện yêu cầu nạp tiền giả mạo bị chặn!');
+            return res.status(403).send('Forbidden: Invalid or Missing API Key');
+        }
+
         console.log(JSON.stringify(req.body, null, 2));
 
         // SePay gửi các trường: content, transferAmount, referenceCode, accountNumber...

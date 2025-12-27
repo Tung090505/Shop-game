@@ -212,24 +212,35 @@ exports.topup = async (req, res) => {
 
 exports.withdrawCommission = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (user.commissionBalance <= 0) return res.status(400).send('No commission to withdraw');
+        // 1. Tìm và lấy toàn bộ hoa hồng, sau đó đặt nó về 0 ngay lập tức (Atomic)
+        const user = await User.findOneAndUpdate(
+            { _id: req.user._id, commissionBalance: { $gt: 0 } },
+            { $set: { commissionBalance: 0 } },
+            { new: false } // Trả về giá trị TRƯỚC khi cập nhật để lấy số tiền cũ
+        );
+
+        if (!user) {
+            return res.status(400).send('Bạn không có tiền hoa hồng để rút hoặc yêu cầu đang được xử lý.');
+        }
 
         const amount = user.commissionBalance;
-        user.balance += amount;
-        user.commissionBalance = 0;
-        await user.save();
 
+        // 2. Cộng vào số dư chính (Atomic)
+        await User.findByIdAndUpdate(req.user._id, {
+            $inc: { balance: amount }
+        });
+
+        // 3. Ghi log
         await new Transaction({
             userId: user._id,
             type: 'withdraw',
             amount: amount,
-            description: 'Commission withdrawal to main balance'
+            description: 'Rút tiền hoa hồng về tài khoản chính'
         }).save();
 
-        res.json(user);
+        res.json({ message: `Rút thành công ${amount.toLocaleString()}đ`, amount });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send(err.message);
     }
 };
 

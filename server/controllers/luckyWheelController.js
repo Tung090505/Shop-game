@@ -15,26 +15,33 @@ exports.getPrizes = async (req, res) => {
 
 exports.spin = async (req, res) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (user.balance < SPIN_COST) {
-            return res.status(400).json({ message: 'Insufficient balance' });
+        // 1. Trừ tiền quay ngay lập tức (Atomic)
+        const userAfterCharge = await User.findOneAndUpdate(
+            { _id: req.user._id, balance: { $gte: SPIN_COST } },
+            { $inc: { balance: -SPIN_COST } },
+            { new: true }
+        );
+
+        if (!userAfterCharge) {
+            return res.status(400).json({ message: 'Số dư không đủ để quay vòng quay may mắn!' });
         }
 
-        user.balance -= SPIN_COST;
-        await user.save();
-
+        // 2. Ghi log tiền phí
         await new Transaction({
-            userId: user._id,
+            userId: userAfterCharge._id,
             type: 'lucky-wheel',
             amount: -SPIN_COST,
-            description: 'Lucky Wheel spin cost'
+            description: 'Phí quay vòng quay may mắn'
         }).save();
 
         const prizes = await LuckyWheelPrize.find();
         if (prizes.length === 0) {
-            return res.status(500).json({ message: 'No prizes configured' });
+            // Rollback tiền nếu không có giải thưởng
+            await User.findByIdAndUpdate(req.user._id, { $inc: { balance: SPIN_COST } });
+            return res.status(500).json({ message: 'Lỗi hệ thống: Chưa cấu hình giải thưởng.' });
         }
 
+        // 3. Tính toán kết quả ngẫu nhiên
         const random = Math.random();
         let cumulativeChance = 0;
         let selectedPrize = prizes[prizes.length - 1];
@@ -47,18 +54,26 @@ exports.spin = async (req, res) => {
             }
         }
 
+        let finalBalance = userAfterCharge.balance;
         let resultMessage = `Chúc mừng! Bạn đã trúng ${selectedPrize.name}!`;
+
+        // 4. Nếu trúng tiền, cộng thưởng (Atomic)
         if (selectedPrize.type === 'balance') {
-            user.balance += selectedPrize.value;
-            await user.save();
+            const prizeValue = selectedPrize.value || 0;
+            const updatedUser = await User.findByIdAndUpdate(
+                req.user._id,
+                { $inc: { balance: prizeValue } },
+                { new: true }
+            );
+            finalBalance = updatedUser.balance;
 
             await new Transaction({
-                userId: user._id,
+                userId: req.user._id,
                 type: 'lucky-wheel',
-                amount: selectedPrize.value,
-                description: `Trúng vòng quay: ${selectedPrize.name} (+${selectedPrize.value.toLocaleString()}đ)`
+                amount: prizeValue,
+                description: `Trúng thưởng: ${selectedPrize.name} (+${prizeValue.toLocaleString()}đ)`
             }).save();
-            resultMessage = `Chúc mừng! Bạn đã trúng ${selectedPrize.value.toLocaleString()}đ vào tài khoản!`;
+            resultMessage = `Chúc mừng! Bạn đã trúng ${prizeValue.toLocaleString()}đ vào tài khoản!`;
         } else if (selectedPrize.type === 'product') {
             resultMessage = `Chúc mừng! Bạn đã trúng ${selectedPrize.name}! Vui lòng kiểm tra kho đồ.`;
         } else if (selectedPrize.type === 'empty') {
@@ -67,12 +82,13 @@ exports.spin = async (req, res) => {
 
         res.json({
             prize: selectedPrize,
-            newBalance: user.balance,
+            newBalance: finalBalance,
             message: resultMessage
         });
 
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        console.error('Lỗi vòng quay:', err);
+        res.status(500).json({ message: 'Lỗi hệ thống khi quay thưởng.' });
     }
 };
 
