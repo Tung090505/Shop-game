@@ -38,28 +38,9 @@ exports.register = async (req, res) => {
 
         const savedUser = await user.save();
 
-        // Send verification link
-        const url = `${process.env.BASE_URL}/api/user/verify/${savedUser._id}/${verificationToken}`;
-
-        /* 
-        // Temporarily disabled for development convenience
-        const html = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <h2 style="color: #6366f1; text-align: center;">Welcome to ShopNickTFT!</h2>
-                <p>Thank you for registering. Please verify your email by clicking the button below:</p>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${url}" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
-                </div>
-                <hr>
-                <p style="font-size: 12px; color: #888; text-align: center;">If you did not create an account, please ignore this email.</p>
-            </div>
-        `;
-        await sendEmail(savedUser.email, "Verify Your Email - ShopNickTFT", html);
-        */
-
         res.send({ message: "Registration successful! You can login now." });
     } catch (err) {
-        res.status(400).send(err.message || err);
+        res.status(400).send("Lỗi đăng ký tài khoản.");
     }
 };
 
@@ -68,10 +49,8 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ username: req.body.username });
         if (!user) return res.status(400).send('Username is not found');
 
-
         const validPass = await bcrypt.compare(req.body.password, user.password);
         if (!validPass) return res.status(400).send('Mật khẩu không chính xác');
-
 
         // SECURITY: 2FA cho Admin
         if (user.role === 'admin') {
@@ -98,8 +77,7 @@ exports.login = async (req, res) => {
             });
         }
 
-        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
-
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
         res.header('auth-token', token).send({
             token,
@@ -112,7 +90,7 @@ exports.login = async (req, res) => {
             }
         });
     } catch (err) {
-        res.status(400).send(err.message);
+        res.status(400).send("Lỗi đăng nhập.");
     }
 };
 
@@ -136,7 +114,7 @@ exports.verifyLoginOtp = async (req, res) => {
         user.loginOtpExpires = undefined;
         await user.save();
 
-        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET);
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '24h' });
         res.header('auth-token', token).send({
             token,
             user: {
@@ -149,7 +127,7 @@ exports.verifyLoginOtp = async (req, res) => {
         });
 
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send("Lỗi xác thực OTP.");
     }
 };
 
@@ -177,7 +155,7 @@ exports.getProfile = async (req, res) => {
         const user = await User.findById(req.user._id).select('-password');
         res.json(user);
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send("Không thể lấy thông tin tài khoản.");
     }
 };
 
@@ -186,7 +164,7 @@ exports.getTransactions = async (req, res) => {
         const transactions = await Transaction.find({ userId: req.user._id }).sort({ createdAt: -1 });
         res.json(transactions);
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send("Không thể lấy lịch sử giao dịch.");
     }
 };
 
@@ -206,17 +184,16 @@ exports.topup = async (req, res) => {
 
         res.json(user);
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send("Lỗi nạp tiền.");
     }
 };
 
 exports.withdrawCommission = async (req, res) => {
     try {
-        // 1. Tìm và lấy toàn bộ hoa hồng, sau đó đặt nó về 0 ngay lập tức (Atomic)
         const user = await User.findOneAndUpdate(
             { _id: req.user._id, commissionBalance: { $gt: 0 } },
             { $set: { commissionBalance: 0 } },
-            { new: false } // Trả về giá trị TRƯỚC khi cập nhật để lấy số tiền cũ
+            { new: false }
         );
 
         if (!user) {
@@ -225,12 +202,10 @@ exports.withdrawCommission = async (req, res) => {
 
         const amount = user.commissionBalance;
 
-        // 2. Cộng vào số dư chính (Atomic)
         await User.findByIdAndUpdate(req.user._id, {
             $inc: { balance: amount }
         });
 
-        // 3. Ghi log
         await new Transaction({
             userId: user._id,
             type: 'withdraw',
@@ -240,7 +215,7 @@ exports.withdrawCommission = async (req, res) => {
 
         res.json({ message: `Rút thành công ${amount.toLocaleString()}đ`, amount });
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send("Lỗi rút hoa hồng.");
     }
 };
 
@@ -250,7 +225,7 @@ exports.getAllUsers = async (req, res) => {
         const users = await User.find().select('-password').sort({ createdAt: -1 });
         res.json(users);
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send("Lỗi truy xuất dữ liệu người dùng.");
     }
 };
 
@@ -260,7 +235,7 @@ exports.getAllTransactions = async (req, res) => {
         const transactions = await Transaction.find().populate('userId', 'username email').sort({ createdAt: -1 });
         res.json(transactions);
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send("Lỗi truy xuất dữ liệu giao dịch.");
     }
 };
 
@@ -283,10 +258,9 @@ exports.updateUserBalance = async (req, res) => {
 
         res.json(user);
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send("Lỗi cập nhật số dư.");
     }
 };
-
 
 exports.deleteUser = async (req, res) => {
     try {
@@ -294,7 +268,7 @@ exports.deleteUser = async (req, res) => {
         await User.findByIdAndDelete(req.params.id);
         res.json({ message: 'User deleted successfully' });
     } catch (err) {
-        res.status(500).send(err);
+        res.status(500).send("Lỗi xóa người dùng.");
     }
 };
 
@@ -312,7 +286,7 @@ exports.changePassword = async (req, res) => {
 
         res.json({ message: 'Đổi mật khẩu thành công' });
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send("Lỗi đổi mật khẩu.");
     }
 };
 
@@ -349,10 +323,10 @@ exports.forgotPassword = async (req, res) => {
             user.resetPasswordToken = undefined;
             user.resetPasswordExpires = undefined;
             await user.save();
-            res.status(500).send(`Lỗi gửi mail: ${emailError.message}`);
+            res.status(500).send("Không thể gửi email đặt lại mật khẩu.");
         }
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send("Lỗi yêu cầu đặt lại mật khẩu.");
     }
 };
 
@@ -373,7 +347,6 @@ exports.resetPassword = async (req, res) => {
 
         res.send("Mật khẩu đã được cập nhật thành công!");
     } catch (err) {
-        res.status(500).send(err.message);
+        res.status(500).send("Lỗi đặt lại mật khẩu.");
     }
 };
-

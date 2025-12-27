@@ -48,9 +48,9 @@ const apiLimiter = rateLimit({
 });
 
 const authLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 giờ
-    max: 20, // Chỉ cho phép 20 lần thử login/register mỗi giờ từ 1 IP
-    message: 'Bạn đã thử quá nhiều lần, vui lòng đợi sau 1 giờ.'
+    windowMs: 15 * 60 * 1000, // 15 phút
+    max: 5, // Chỉ cho phép 5 lần thử login mỗi 15 phút
+    message: 'Bạn đã đăng nhập sai quá nhiều lần. Vui lòng đợi 15 phút để thử lại.'
 });
 
 app.use('/api/', apiLimiter);

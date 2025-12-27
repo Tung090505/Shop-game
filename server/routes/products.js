@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
         const products = await Product.find(query).sort({ createdAt: -1 });
         res.json(products);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Đã có lỗi xảy ra khi tải danh sách sản phẩm.' });
     }
 });
 
@@ -55,7 +55,7 @@ router.get('/admin/all', verifyToken, isAdmin, async (req, res) => {
             .sort({ createdAt: -1 });
         res.json(products);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Không thể lấy danh sách sản phẩm admin.' });
     }
 });
 
@@ -66,7 +66,7 @@ router.get('/:id', async (req, res) => {
         if (!product) return res.status(404).json({ message: 'Product not found' });
         res.json(product);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Sản phẩm không tồn tại hoặc ID không hợp lệ.' });
     }
 });
 
@@ -102,7 +102,7 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
         await Product.findByIdAndDelete(req.params.id);
         res.json({ message: 'Product deleted' });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: 'Không thể xóa sản phẩm.' });
     }
 });
 
